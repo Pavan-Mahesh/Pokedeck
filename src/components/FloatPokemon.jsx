@@ -15,60 +15,68 @@ function FloatPokemon(props) {
     React.useEffect(() => {
         setIsLoading(true);
 
-        fetch(`${POKEMON_URL}${props.selected.id}`)
-            .then((res) => {
-                if(!res.ok) throw new Error("Failed to fetch pokemon info");
-                return res.json();
-            })
-            .then((data) => {
-                // height in decimeters
-                const totalInches = data.height * 10 / 2.54;
+        async function fetchPokemonData() {
+            try {
+                const [pokemonRes, speciesRes] = await Promise.all([
+                    fetch(`${POKEMON_URL}${props.selected.id}`),
+                    fetch(`${SPECIE_URL}${props.selected.id}`),
+                ])
+
+                const [pokemonData, speciesData] = await Promise.all([
+                    pokemonRes.json(),
+                    speciesRes.json(),
+                ])
+
+
+                // setting pokemon data
+                const totalInches = pokemonData.height * 10 / 2.54;
                 let inches = Math.round(totalInches % 12);
                 let feet = Math.floor(totalInches / 12);
 
                 if(inches === 12) {
-                   feet++;
-                   inches = 0;
+                    feet++;
+                    inches = 0;
                 }
 
                 setPokemon({
-                    weight: data.weight / 10,
+                    weight: pokemonData.weight / 10,
                     height: {
                         feet: feet,
                         inches: inches.toString().padStart(2, '0'),
                     },
-                    types: [...data.types],
-                    stats: [...data.stats]
+                    types: [...pokemonData.types],
+                    stats: [...pokemonData.stats]
                 });
+
+                // setting species data
+                let flavorText = "";
+                for (let curr_flavor_text of speciesData.flavor_text_entries) {
+                    if(curr_flavor_text.language.name === "en") {
+                        if(flavorText.length === 0 || flavorText.length > curr_flavor_text.flavor_text.length) {
+                            flavorText = curr_flavor_text.flavor_text;
+                        }
+
+                        if(flavorText.length <= 120) {
+                            break;
+                        }
+                    }
+                }
+                setSpecies({
+                    flavorText: flavorText.replaceAll("\u000c", " "),
+                    evolvesFrom: speciesData.evolves_from_species?.name,
+                    evolutionChain: speciesData.evolution_chain.url,
+                })
+
                 setTimeout(() => {
                     setIsLoading(false);
                 }, 300)
-            })
-            .catch ((err) => {
-                console.log("Error fetching data. Error:", err);
-            })
+            } catch (err) {
+                console.error("Error fetching pokemon data. Error:", err);
+            }
 
-        fetch(`${SPECIE_URL}${props.selected.id}`)
-            .then((res) => {
-                if(!res.ok) throw new Error ("Failed to fetch pokemon info");
-                return res.json();
-            })
-            .then((data) => {
-                console.log(data.evolves_from_species?.name)
-                for (let curr_flavor_text of data.flavor_text_entries) {
-                    if(curr_flavor_text.language.name === "en") {
-                        setSpecies({
-                            flavorText: curr_flavor_text.flavor_text.replaceAll("\u000c", " "),
-                            evolvesFrom: data.evolves_from_species?.name,
-                            evolutionChain: data.evolution_chain.url,
-                        })
-                        break;
-                    }
-                }
-            })
-            .catch ((err) => {
-                console.log("Error fetching data. Error:", err);
-            })
+        }
+
+        fetchPokemonData();
     }, [props.selected.id]);
 
     return (
@@ -117,7 +125,7 @@ function FloatPokemon(props) {
                                 </div>
                             </div>
 
-                        <div className={`w-full text-base underline underline-offset-2 leading-tight px-0.5`}>{species.flavorText}</div>
+                        <div className={`w-full text-base underline underline-offset-2 leading-tight px-0.5 line-clamp-3`} title={species.flavorText}>{species.flavorText}</div>
 
                         <div className={'mt-auto'}>
                             <Stats stats={pokemon.stats}/>
