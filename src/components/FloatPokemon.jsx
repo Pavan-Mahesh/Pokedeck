@@ -1,14 +1,15 @@
-import React from "react";
+import React, {useState} from "react";
 
 import Types from "./Types.jsx";
 import Stats from "./Stats.jsx";
 import Load from "./Load.jsx";
 
 const POKEMON_URL = "https://pokeapi.co/api/v2/pokemon/";
+const SPECIE_URL = "https://pokeapi.co/api/v2/pokemon-species/";
 
 function FloatPokemon(props) {
-    const [types, setTypes] = React.useState([]);
-    const [stats, setStats] = React.useState([]);
+    const [pokemon, setPokemon] = useState({});
+    const [species, setSpecies] = useState({});
     const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -20,11 +21,53 @@ function FloatPokemon(props) {
                 return res.json();
             })
             .then((data) => {
-                setTypes(data.types);
-                setStats(data.stats);
+                // height in decimeters
+                const totalInches = data.height * 10 / 2.54;
+                let inches = Math.round(totalInches % 12);
+                let feet = Math.floor(totalInches / 12);
+
+                if(inches === 12) {
+                   feet++;
+                   inches = 0;
+                }
+
+                setPokemon({
+                    weight: data.weight / 10,
+                    height: {
+                        feet: feet,
+                        inches: inches.toString().padStart(2, '0'),
+                    },
+                    types: [...data.types],
+                    stats: [...data.stats]
+                });
                 setTimeout(() => {
                     setIsLoading(false);
                 }, 300)
+            })
+            .catch ((err) => {
+                console.log("Error fetching data. Error:", err);
+            })
+
+        fetch(`${SPECIE_URL}${props.selected.id}`)
+            .then((res) => {
+                if(!res.ok) throw new Error ("Failed to fetch pokemon info");
+                return res.json();
+            })
+            .then((data) => {
+                console.log(data.evolves_from_species?.name)
+                for (let curr_flavor_text of data.flavor_text_entries) {
+                    if(curr_flavor_text.language.name === "en") {
+                        setSpecies({
+                            flavorText: curr_flavor_text.flavor_text.replaceAll("\u000c", " "),
+                            evolvesFrom: data.evolves_from_species?.name,
+                            evolutionChain: data.evolution_chain.url,
+                        })
+                        break;
+                    }
+                }
+            })
+            .catch ((err) => {
+                console.log("Error fetching data. Error:", err);
             })
     }, [props.selected.id]);
 
@@ -35,9 +78,11 @@ function FloatPokemon(props) {
                     ? <Load sideText={true} />
                     : <div
                         className={`    
-                            min-w-max h-max py-6 px-8 rounded-xl bg-white shadow-2xl flex flex-col items-center gap-2
+                            w-80 aspect-[5/7]
+                            rounded-xl bg-white shadow-2xl 
+                            flex flex-col items-center
+                            border-8 border-yellow-300 p-2
                             ${props.animateBack ? 'animate-leave' : 'animate-enter'}
-                            max-sm:max-h-[95%] max-sm:overflow-y-auto
                         `}
                         onAnimationEnd={() => {
                             if (props.animateBack) {
@@ -46,23 +91,36 @@ function FloatPokemon(props) {
                             }
                         }}
                     >
-                        <div className={`w-full flex justify-between items-center max-sm:flex-col max-sm:gap-3`}>
-                            <div className="flex items-center gap-3 text-nowrap font-semibold text-xl">
-                                <div>#{props.selected.id.toString().padStart(4, "0")}</div>
+                            <div className="flex items-end gap-1.5 text-nowrap font-semibold text-xl mb-auto">
+                                <div className={'text-base text-gray-500'}>#{props.selected.id.toString().padStart(4, "0")}</div>
                                 <div>{props.selected.name.toUpperCase()}</div>
                             </div>
 
-                            <Types types={types}/>
-                        </div>
+                            <div className={'w-full aspect-video flex justify-evenly items-center'}>
+                                <img
+                                    className={'w-40 aspect-square saturate-150 drop-shadow-xl'}
+                                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${props.selected.id}.png`}
+                                    alt=""
+                                />
 
-                        <div className={`flex gap-2 max-sm:flex-col items-center`}>
-                            <img
-                                className="w-52 aspect-square saturate-150 drop-shadow-xl max-sm:my-2"
-                                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${props.selected.id}.png`}
-                                alt=""
-                            />
+                                <div className={'h-full flex flex-col justify-center items-start'}>
+                                    { species.evolvesFrom &&
+                                        <div className={`text-xs`}>
+                                            Evolves from <br/> <span className={'italic font-semibold'}>{species.evolvesFrom.toUpperCase()}</span>
+                                        </div>
+                                    }
+                                    <div className={'text-base leading-5 mt-2 mb-3'}>
+                                        <div>Weight: {pokemon.weight} kg</div>
+                                        <div>Height: {pokemon.height.feet + `' ` + pokemon.height.inches + `"`}</div>
+                                    </div>
+                                    <Types types={pokemon.types}/>
+                                </div>
+                            </div>
 
-                            <Stats stats={stats}/>
+                        <div className={`w-full text-base underline underline-offset-2 leading-tight px-0.5`}>{species.flavorText}</div>
+
+                        <div className={'mt-auto'}>
+                            <Stats stats={pokemon.stats}/>
                         </div>
                     </div>
             }
@@ -72,7 +130,10 @@ function FloatPokemon(props) {
                     absolute -z-1 w-full h-full bg-gray-950 opacity-50
                     ${props.animateBack ? 'animate-fade-out' : 'animate-fade-in'}
                 `}
-                onClick={() => props.setAnimateBack(true)}
+                onClick={() => {
+                    props.setAnimateBack(true);
+                    setIsLoading(false);
+                }}
             ></div>
         </div>
     )

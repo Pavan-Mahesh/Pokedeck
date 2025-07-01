@@ -17,24 +17,31 @@ function PokemonGrid () {
     const [animateBack, setAnimateBack] = React.useState(false);
 
     React.useEffect(() => {
+        setIsLoading(true);
+
         fetch(SPECIES_URL)
             .then(res => {
                 if(!res.ok) throw new Error("Failed to fetch pokemon list");
                 return res.json()
             })
             .then((data) => {
-                setPokemonList(
-                    data.results.map((pokemon) => {
-                        const matchID = pokemon.url.match(/\/pokemon-species\/(\d+)\//);
-                        // matchID => ["/pokemon-species/1/", "1"]
-                        const id = parseInt(matchID[1], 10);
-                        return {name: pokemon.name, id};
-                    })
-                )
+                setTimeout(() => {
+                    setPokemonList(
+                        data.results.map((pokemon) => {
+                            const matchID = pokemon.url.match(/\/pokemon-species\/(\d+)\//);
+                            // matchID => ["/pokemon-species/1/", "1"]
+                            const id = parseInt(matchID[1], 10);
+                            return {name: pokemon.name, id};
+                        })
+                    );
+
+                    setIsLoading(false);
+                }, 300)
             })
             .catch((err) => {
                 console.error('Error:', err.message)
                 setError('Error: ' + 'Failed to fetch pokemon list');
+                setIsLoading(false);
             })
     }, []);
 

@@ -17,7 +17,7 @@ function Pokemon(props) {
             onClick={onCardSelect}
         >
             <img
-                className={'w-44 aspect-square saturate-150 drop-shadow-xl'}
+                className={'w-40 aspect-square saturate-150 drop-shadow-xl'}
                 src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${props.pokemon.id}.png`}
                 alt=""
             />
