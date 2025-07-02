@@ -8,8 +8,7 @@ const POKEMON_URL = "https://pokeapi.co/api/v2/pokemon/";
 const SPECIE_URL = "https://pokeapi.co/api/v2/pokemon-species/";
 
 function FloatPokemon(props) {
-    const [pokemon, setPokemon] = useState({});
-    const [species, setSpecies] = useState({});
+    const [pokemonInfo, setPokemonInfo] = useState({});
     const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -27,7 +26,6 @@ function FloatPokemon(props) {
                     speciesRes.json(),
                 ])
 
-
                 // setting pokemon data
                 const totalInches = pokemonData.height * 10 / 2.54;
                 let inches = Math.round(totalInches % 12);
@@ -37,16 +35,6 @@ function FloatPokemon(props) {
                     feet++;
                     inches = 0;
                 }
-
-                setPokemon({
-                    weight: pokemonData.weight / 10,
-                    height: {
-                        feet: feet,
-                        inches: inches.toString().padStart(2, '0'),
-                    },
-                    types: [...pokemonData.types],
-                    stats: [...pokemonData.stats]
-                });
 
                 // setting species data
                 let flavorText = "";
@@ -61,22 +49,33 @@ function FloatPokemon(props) {
                         }
                     }
                 }
-                setSpecies({
+
+                setPokemonInfo({
+                    // from pokemon fetch
+                    weight: pokemonData.weight / 10,
+                    height: {
+                        feet: feet,
+                        inches: inches.toString().padStart(2, '0'),
+                    },
+                    types: [...pokemonData.types],
+                    stats: [...pokemonData.stats],
+
+                    // from species fetch
                     flavorText: flavorText.replaceAll("\u000c", " "),
                     evolvesFrom: speciesData.evolves_from_species?.name,
                     evolutionChain: speciesData.evolution_chain.url,
                 })
-
-                setTimeout(() => {
-                    setIsLoading(false);
-                }, 300)
             } catch (err) {
                 console.error("Error fetching pokemon data. Error:", err);
             }
 
         }
 
-        fetchPokemonData();
+        fetchPokemonData().then(() => {
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 300)
+        });
     }, [props.selected.id]);
 
     return (
@@ -112,23 +111,23 @@ function FloatPokemon(props) {
                                 />
 
                                 <div className={'h-full flex flex-col justify-center items-start'}>
-                                    { species.evolvesFrom &&
+                                    { pokemonInfo.evolvesFrom &&
                                         <div className={`text-xs`}>
-                                            Evolves from <br/> <span className={'italic font-semibold'}>{species.evolvesFrom.toUpperCase()}</span>
+                                            Evolves from <br/> <span className={'italic font-semibold'}>{pokemonInfo.evolvesFrom.toUpperCase()}</span>
                                         </div>
                                     }
                                     <div className={'text-base leading-5 mt-2 mb-3'}>
-                                        <div>Weight: {pokemon.weight} kg</div>
-                                        <div>Height: {pokemon.height.feet + `' ` + pokemon.height.inches + `"`}</div>
+                                        <div>Weight: {pokemonInfo.weight} kg</div>
+                                        <div>Height: {pokemonInfo.height.feet + `' ` + pokemonInfo.height.inches + `"`}</div>
                                     </div>
-                                    <Types types={pokemon.types}/>
+                                    <Types types={pokemonInfo.types}/>
                                 </div>
                             </div>
 
-                        <div className={`w-full text-base underline underline-offset-2 leading-tight px-0.5 line-clamp-3`} title={species.flavorText}>{species.flavorText}</div>
+                        <div className={`w-full text-base underline underline-offset-2 leading-tight px-0.5 line-clamp-3`} title={pokemonInfo.flavorText}>{pokemonInfo.flavorText}</div>
 
                         <div className={'mt-auto'}>
-                            <Stats stats={pokemon.stats}/>
+                            <Stats stats={pokemonInfo.stats}/>
                         </div>
                     </div>
             }
