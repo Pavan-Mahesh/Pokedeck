@@ -1,7 +1,8 @@
 import React from "react"
 
-import Load from "./Load.jsx"
+import Load from "./Load.jsx";
 import Pokemon from "./Pokemon.jsx";
+import EvolutionChain from "./EvolutionChain.jsx";
 
 const POKEDEX_URL = 'https://pokeapi.co/api/v2/pokedex/1';
 const LIMIT = 16;
@@ -9,10 +10,13 @@ const LIMIT = 16;
 function PokemonGrid () {
     const [pokemonList, setPokemonList] = React.useState([]);
     const [pokemonInfo, setPokemonInfo] = React.useState([]);
+    const [showEvolutionChain, setShowEvolutionChain] = React.useState([]);
+
+    console.log(showEvolutionChain);
 
     const evolutionList = React.useRef({});
 
-    const [count, setCount] = React.useState(0);
+    const [count, setCount] = React.useState(900);
 
     const [isLoading, setIsLoading] = React.useState(false);
     const didInitialLoad = React.useRef(false);
@@ -102,7 +106,6 @@ function PokemonGrid () {
         pokemonInfo.flavorText = speciesData.flavor_text_entries.find((entry) => {
             return entry.flavor_text.length <= 200 && entry.language.name === "en"
         }).flavor_text.replaceAll("\f", " ");
-        pokemonInfo.evolvesFrom = speciesData.evolvesFrom;
         pokemonInfo.evolutionChainURL = speciesData.evolution_chain.url;
         pokemonInfo.pokemonURL = speciesData.varieties.find((variety) => {
             return variety.is_default
@@ -196,11 +199,11 @@ function PokemonGrid () {
 
     return (
         <div className="
-             w-full h-screen px-6 py-10 grid grid-cols-[repeat(auto-fit,21rem)] auto-rows-max justify-center gap-8 overflow-y-scroll overflow-x-hidden
+             w-full h-screen px-6 py-10 grid grid-cols-[repeat(auto-fit,21rem)] justify-center gap-x-10 gap-y-14 overflow-y-scroll overflow-x-hidden
         ">
             {
                 pokemonInfo.map(pokemon => {
-                    return <Pokemon key={pokemon.id} pokemon={pokemon} />
+                    return <Pokemon key={pokemon.id} pokemon={pokemon} setShowEvolutionChain={setShowEvolutionChain} />
                 })
             }
 
@@ -220,9 +223,14 @@ function PokemonGrid () {
                                 disabled={isLoading}
                                 onClick={loadMorePokemon}
                             >{isLoading ? <Load sideText={true} /> : 'Load more Pokemon'}</button>
-                        :   <h1 className={`text-center text-2xl font-bold font-ranchers`}>You have reached the end of the deck...</h1>
+                        :   <h1 className={`text-center text-2xl font-bold font-cursive`}>You have reached the end of the deck...</h1>
                 }
             </div>
+
+            {
+                showEvolutionChain.length > 0 &&
+                <EvolutionChain evolutionChain={showEvolutionChain} setShowEvolutionChain={setShowEvolutionChain}/>
+            }
         </div>
     )
 }

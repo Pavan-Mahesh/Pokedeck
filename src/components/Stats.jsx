@@ -1,13 +1,22 @@
 import React from "react";
 
-import infoIcon from "../assets/info-icon-svgrepo-com.svg";
+import infoIcon from "../assets/info-icon.svg";
+
+// const STAT_COLORS = {
+//     'HP': `#66BB6A`,
+//     'Attack': `#FB8C00`,
+//     'Defense': `#42A5F5`,
+//     'Spl. Attack': `#EF5350`,
+//     'Spl. Defense': `#ad62f6`,
+//     'Speed': `#FDD835`,
+// }
 
 const STAT_COLORS = {
-    'HP': `#66BB6A`,
-    'Attack': `#FB8C00`,
-    'Defense': `#42A5F5`,
-    'Spl. Attack': `#EF5350`,
-    'Spl. Defense': `#ad62f6`,
+    'HP': `#8BC34A`,
+    'Attack': `#FF9800`,
+    'Defense': `#03A9F4`,
+    'Spl. Attack': `#E91E63`,
+    'Spl. Defense': `#9C27B0`,
     'Speed': `#FDD835`,
 }
 
@@ -45,8 +54,12 @@ function Stats({ stats }) {
                 </div>
                 <button
                     className={`cursor-pointer active:scale-90`}
-                    onClick={() => {
+                    onClick={event => event.stopPropagation()}
+                    onFocus={() => {
                         handleClick(statItem.name)
+                    }}
+                    onBlur={() => {
+                        handleClick("");
                     }}
                 >
                     <img className={`size-3 opacity-60`} src={infoIcon} alt={'i'} />
