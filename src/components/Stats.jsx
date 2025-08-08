@@ -1,7 +1,5 @@
 import React from "react";
 
-import infoIcon from "../assets/info-icon.svg";
-
 // const STAT_COLORS = {
 //     'HP': `#66BB6A`,
 //     'Attack': `#FB8C00`,
@@ -29,13 +27,7 @@ const MAX_STATS = {
     'Speed': 200
 };
 
-function Stats({ stats }) {
-    const [showTooltip, setShowTooltip] = React.useState(null);
-
-    function handleClick(statName) {
-        setShowTooltip(showTooltip === statName ? null : statName)
-    }
-
+function Stats({ stats, flipped }) {
     const BarElems = stats.map((statItem) => {
         const color = STAT_COLORS[statItem.name];
         const percentage = statItem.base_stat / MAX_STATS[statItem.name] * 100;
@@ -43,33 +35,16 @@ function Stats({ stats }) {
         return (
             <div key={statItem.name} className={`col-span-4 grid grid-cols-subgrid gap-3 place-items-center`}>
                 <div className={`justify-self-start`}>{statItem.name}</div>
-                <div className={`font-semibold justify-self-end`}>{statItem.base_stat}</div>
-                <div className={`relative w-24 h-2 rounded bg-gray-300  place-self-center`}>
-                    <div style={{width: `${percentage}%`, backgroundColor: color}} className={`h-full rounded opacity-0 animate-bar-fill`}></div>
-                    <div
-                        style={{borderColor: color}}
-                        className={`
-                            w-24 text-center absolute z-10 px-2 py-0.5 top-1/2 right-0 -translate-y-1/2 bg-white border-2 rounded-full ${showTooltip === statItem.name ? 'opacity-100' : 'opacity-0'} transition-opacity
-                        `}>{`${statItem.base_stat} / ${MAX_STATS[statItem.name]}`}</div>
+                <div className={`relative w-28 h-2.5 rounded bg-gray-300 place-self-center`}>
+                    <div style={{width: `${percentage}%`, backgroundColor: color}} className={`h-full rounded ${flipped && 'animate-bar-fill'}`}></div>
                 </div>
-                <button
-                    className={`cursor-pointer active:scale-90`}
-                    onClick={event => event.stopPropagation()}
-                    onFocus={() => {
-                        handleClick(statItem.name)
-                    }}
-                    onBlur={() => {
-                        handleClick("");
-                    }}
-                >
-                    <img className={`size-3 opacity-60`} src={infoIcon} alt={'i'} />
-                </button>
+                <div className={`justify-self-end`}>{statItem.base_stat} / {MAX_STATS[statItem.name]}</div>
             </div>
         );
     });
 
     return (
-        <div className={`w-full grid grid-cols-[auto auto 1fr auto] text-sm leading-5.5`}>
+        <div className={`w-full grid grid-cols-[auto 1fr auto] text-sm leading-5.5`}>
             {BarElems}
         </div>
     )

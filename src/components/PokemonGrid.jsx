@@ -16,7 +16,7 @@ function PokemonGrid () {
 
     const evolutionList = React.useRef({});
 
-    const [count, setCount] = React.useState(900);
+    const [count, setCount] = React.useState(144);
 
     const [isLoading, setIsLoading] = React.useState(false);
     const didInitialLoad = React.useRef(false);
@@ -209,7 +209,7 @@ function PokemonGrid () {
 
             {
                 isLoading && [...Array(LIMIT)].map((_, idx) =>
-                    <div key={idx} className={`w-[21rem] aspect-[9/16] bg-white rounded-xl shadow-md animate-pulse`}>{idx}</div>
+                    <div key={idx} className={`w-[21rem] aspect-square bg-white rounded-xl shadow-md animate-pulse`}>{idx}</div>
                 )
             }
 

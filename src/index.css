@@ -3,11 +3,8 @@
 @theme {
     --font-cursive: cursive, sans-serif;
 
-    --animate-bar-fill: bar-fill 600ms reverse 200ms forwards;
+    --animate-bar-fill: bar-fill 300ms reverse 100ms forwards;
     @keyframes bar-fill {
-        from, 99% {
-            opacity: 1;
-        }
         to {
             width: 0;
         }

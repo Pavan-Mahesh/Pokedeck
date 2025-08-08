@@ -51,18 +51,18 @@ function Pokemon({ pokemon, setShowEvolutionChain }) {
     const [flipped, setFlipped] = useState(false);
 
     return (
-        <div className={`flex flex-col gap-7 perspective-distant`}>
+        <div className={`flex flex-col gap-7 perspective-distant cursor-pointer`}>
             <div
                 className={`
-                    w-84 h-84
-                    relative transform-3d cursor-pointer
-                    ${flipped && 'rotate-y-180'} transition-transform duration-150 ease-linear
+                    w-84 aspect-square
+                    relative transform-3d
+                    ${flipped && 'rotate-y-180'} transition-transform duration-300 ease-linear
                 `}
                 onClick={() => setFlipped(!flipped)}
             >
                 <div
                     className={`
-                        w-full h-full bg-[#f8f8f1] border-6 border-[#fce278] p-3 rounded-2xl shadow-md
+                        w-full aspect-square bg-[#f8f8f1] border-6 border-[#fce278] p-2.5 rounded-2xl shadow-md
                         flex flex-col items-center justify-between
                         absolute inset-0 backface-hidden
                     `}
@@ -106,7 +106,7 @@ function Pokemon({ pokemon, setShowEvolutionChain }) {
 
                 <div
                     className={`
-                        w-full h-full bg-[#f8f8f1] border-6 border-[#fce278] p-3 rounded-2xl shadow-md
+                        w-full aspect-square bg-[#f8f8f1] border-6 border-[#fce278] p-2.5 rounded-2xl shadow-md
                         flex flex-col items-center justify-between
                         absolute inset-0 backface-hidden rotate-y-180
                     `}
@@ -131,7 +131,10 @@ function Pokemon({ pokemon, setShowEvolutionChain }) {
 
                     <div className={`flex items-center text-sm grow mt-2 mb-2 border-2 border-l-0 border-r-0 italic`}>{pokemon.flavorText}</div>
 
-                    <Stats stats={pokemon.stats} setFlipped={setFlipped} />
+                    <Stats stats={pokemon.stats} flipped={flipped} />
+
+                    <div className={`absolute inset-x-1/2 -translate-x-1/2 w-44 h-44 bg-cover -z-10 opacity-25`}
+                    style={{ backgroundImage: `url(${IMG_URL + pokemon.id + ".png"})` }}></div>
                 </div>
             </div>
 
