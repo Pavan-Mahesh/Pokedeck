@@ -2,97 +2,120 @@ import React from "react"
 
 import Load from "./Load.jsx";
 import Pokemon from "./Pokemon.jsx";
-import EvolutionChain from "./EvolutionChain.jsx";
+import closeX from "../assets/close-x.svg"
 
 const POKEDEX_URL = 'https://pokeapi.co/api/v2/pokedex/1';
-const LIMIT = 16;
+
+const LIMIT = 12;
+const START = 0;
 
 function PokemonGrid () {
     const [pokemonList, setPokemonList] = React.useState([]);
-    const [pokemonInfo, setPokemonInfo] = React.useState([]);
-    const [showEvolutionChain, setShowEvolutionChain] = React.useState([]);
+    const [pokemonInfo, setPokemonInfo] = React.useState({});
+    const [count, setCount] = React.useState(START);
+    const [isLoading, setIsLoading] = React.useState(false);
 
-    console.log(showEvolutionChain);
+    const [showEvolutionChain, setShowEvolutionChain] = React.useState([]);
+    const [isClosing, setIsClosing] = React.useState(false);
 
     const evolutionList = React.useRef({});
 
-    const [count, setCount] = React.useState(144);
-
-    const [isLoading, setIsLoading] = React.useState(false);
-    const didInitialLoad = React.useRef(false);
-
     React.useEffect(() => {
-        if (didInitialLoad.current) return;
+        if (globalThis.__POKEMON_LIST_LOADED__ === "done") return;
 
-        setIsLoading(true)
+        globalThis.__POKEMON_LIST_LOADED__ = "in-progress";
         const controller = new AbortController();
 
-        fetch(POKEDEX_URL, { signal: controller.signal })
-            .then(res => {
-                if(!res.ok) {
-                    throw new Error("Failed to fetch pokemon list");
-                }
+        const fetchPokemonList = async () => {
+            try {
+                setIsLoading(true);
 
-                return res.json()
-            })
-            .then(data => {
-                const list = data.pokemon_entries.map((entry) => {
-                    return {
-                        name: entry.pokemon_species.name,
-                        url: entry.pokemon_species.url,
-                    }
-                })
+                const res = await fetch(POKEDEX_URL, { signal: controller.signal });
+                if (!res.ok) throw new Error("Failed to fetch pokemon list.");
+
+                const data = await res.json();
+                const list = data.pokemon_entries.map((entry) => ({
+                    name: entry.pokemon_species.name,
+                    url: entry.pokemon_species.url,
+                }));
+
                 setPokemonList(list);
-            })
-            .catch((err) => {
-                console.log(err.name + ": " + err.message)
-            })
-            .finally(() => {
+
+                await loadMorePokemon({ sourceList: list, count: 0 });
+
+                globalThis.__POKEMON_LIST_LOADED__ = "done";
+            } catch (err) {
+                if (err.name !== "AbortError")
+                    console.log(err.name + ": " + err.message)
+
+                if (globalThis.__POKEMON_LIST_LOADED__)
+                    delete globalThis.__POKEMON_LIST_LOADED__;
+            } finally {
                 setIsLoading(false);
-            })
+            }
+        }
+
+        fetchPokemonList();
 
         return (() => {
             controller.abort();
         })
     }, []);
 
-    React.useEffect(() => {
-        if(pokemonList.length > 0 && !didInitialLoad.current) {
-            loadMorePokemon().then(() => {
-                didInitialLoad.current = true;
-            })
-        }
-    }, [pokemonList]);
-
-    async function loadMorePokemon() {
+    async function loadMorePokemon({ sourceList = pokemonList, start = count }) {
         setIsLoading(true)
 
         try {
-            const newInfo = await Promise.all(
-                pokemonList.slice(count, count + LIMIT).map((pokemon) => (
-                    getPokemonInfo(pokemon.url)
-                        .catch((err) => {
-                            console.log(err.name + ": " + err.message)
-                            return null;
-                        })
+            const slice = sourceList.slice(start, start + LIMIT).filter(p =>  !pokemonInfo[p.name]);
+            const newInfo = await getInfo(slice, sourceList);
+
+            let updatedList = {...pokemonInfo, ...newInfo};
+
+            const wantedList = new Set();
+            for (let pokemon of Object.values(newInfo)) {
+                pokemon.evolutionChain.forEach(path => (
+                    path.forEach(stage => {
+                        if (!updatedList[stage.name])
+                            wantedList.add(stage)
+                    })
                 ))
-            );
+            }
+
+            const wantedInfo = await getInfo([...wantedList]);
+
+            updatedList = {...updatedList, ...wantedInfo};
 
             await delay()
 
-            // filtering nulls
-            // const filteredNewInfo = newInfo.filter(Boolean);
-
-            setPokemonInfo((prev) => [...prev, ...newInfo]);
+            setPokemonInfo(updatedList);
             setCount((prev) => prev + LIMIT);
         } catch (err) {
             console.log(err.name + ": " + err.message);
         } finally {
             setIsLoading(false);
         }
+
+        async function getInfo(list) {
+            const info = await Promise.all(
+                list.map((pokemon) => {
+                    return getPokemonInfo(pokemon.name)
+                        .then(data => data)
+                        .catch((err) => {
+                            console.log(err.name + ": " + err.message)
+                            return null;
+                        })
+                })
+            );
+
+            return info
+                .filter(Boolean)
+                .reduce((obj1, obj2) => ({...obj1, ...obj2 }), {});
+        }
     }
 
-    async function getPokemonInfo(url) {
+    async function getPokemonInfo(speciesIdOrName) {
+        const url = "https://pokeapi.co/api/v2/pokemon-species/" + speciesIdOrName;
+
         const speciesRes = await fetch(url);
 
         if(!speciesRes.ok) {
@@ -105,7 +128,7 @@ function PokemonGrid () {
         pokemonInfo.name = speciesData.name;
         pokemonInfo.flavorText = speciesData.flavor_text_entries.find((entry) => {
             return entry.flavor_text.length <= 200 && entry.language.name === "en"
-        }).flavor_text.replaceAll("\f", " ");
+        }).flavor_text.replaceAll("\f", "-");
         pokemonInfo.evolutionChainURL = speciesData.evolution_chain.url;
         pokemonInfo.pokemonURL = speciesData.varieties.find((variety) => {
             return variety.is_default
@@ -160,7 +183,7 @@ function PokemonGrid () {
 
         pokemonInfo.evolutionChain = evolutionList.current[evolutionChainId];
 
-        return pokemonInfo;
+        return {[pokemonInfo.name] : pokemonInfo};
 
         // Recursive DFS to collect all possible evolution chains as arrays of IDs
         function getEvolutions(chain) {
@@ -199,17 +222,33 @@ function PokemonGrid () {
 
     return (
         <div className="
-             w-full h-screen px-6 py-10 grid grid-cols-[repeat(auto-fit,21rem)] justify-center gap-x-10 gap-y-14 overflow-y-scroll overflow-x-hidden
+             w-full h-full px-6 py-10 grid grid-cols-[repeat(auto-fit,21rem)] justify-center gap-x-10 gap-y-14 overflow-y-scroll
         ">
             {
-                pokemonInfo.map(pokemon => {
-                    return <Pokemon key={pokemon.id} pokemon={pokemon} setShowEvolutionChain={setShowEvolutionChain} />
+                pokemonList.slice(START, count).map(pokemon => {
+                    const pokemonData = pokemonInfo[pokemon?.name];
+                    return (
+                        <div key={pokemonData.name} className={`flex flex-col gap-6`}>
+                            <Pokemon pokemon={pokemonData} setShowEvolutionChain={setShowEvolutionChain} />
+
+                            <button
+                                className={`
+                                    flex justify-center items-center rounded-md text-white py-2 px-8 bg-[#E63946]/80 text-lg font-semibold shadow-sm cursor-pointer
+                                `}
+                                onClick={ () => setShowEvolutionChain(pokemonData.evolutionChain)}
+                            >Evolution Chain</button>
+                        </div>
+                    )
                 })
             }
 
             {
                 isLoading && [...Array(LIMIT)].map((_, idx) =>
-                    <div key={idx} className={`w-[21rem] aspect-square bg-white rounded-xl shadow-md animate-pulse`}>{idx}</div>
+                    <div key={idx} className={`flex flex-col gap-6`}>
+                        <div className={`w-[21rem] aspect-square bg-slate-300 rounded-2xl shadow-md animate-pulse`}></div>
+
+                        <div className={`w-[21rem] h-[2.75rem] bg-slate-300 rounded-md animate-pulse shadow-md`}></div>
+                    </div>
                 )
             }
 
@@ -228,8 +267,38 @@ function PokemonGrid () {
             </div>
 
             {
-                showEvolutionChain.length > 0 &&
-                <EvolutionChain evolutionChain={showEvolutionChain} setShowEvolutionChain={setShowEvolutionChain}/>
+                (showEvolutionChain.length > 0 || isClosing) &&
+                <div
+                    className={`w-full h-full flex justify-center pt-8 p-4 overflow-y-auto overflow-x-hidden absolute inset-0 bg-black/80
+                    ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+                    onAnimationEnd={() => {
+                        if (isClosing) {
+                            setIsClosing(false);
+                            setShowEvolutionChain([]);
+                        }
+                    }}
+                >
+                    <div className={`my-auto flex flex-wrap justify-center gap-x-8 gap-y-14`}> {
+                        showEvolutionChain.map((path, idx) => {
+                            return (
+                                <div className={`h-max shrink-0 flex flex-col xl:flex-row justify-center gap-6 bg-slate-300/60 py-8 px-6 rounded-xl overflow-y-visible`} key={idx}>{
+                                    path.map((stage) => {
+                                        const pokemonData = pokemonInfo[stage.name];
+                                        return <Pokemon key={pokemonData.name} pokemon={pokemonData} />
+                                    })
+                                }</div>
+                            )
+                        })
+                    } </div>
+                   <button
+                       className={`w-12 h-12 rounded-full fixed right-6 top-6 bg-black/60 p-2 cursor-pointer`}
+                       onClick={() => {
+                           setIsClosing(true);
+                       }}
+                   >
+                       <img src={closeX} alt="X" />
+                   </button>
+                </div>
             }
         </div>
     )

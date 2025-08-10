@@ -1,12 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
 @import "tailwindcss";
 
+@layer base {
+    button {
+        transition: transform 200ms ease;
+        &:hover {
+            transform: scale(1.05);
+        }
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+}
+
 @theme {
-    --font-cursive: cursive, sans-serif;
+    --font-cursive: "Comic Neue", cursive, sans-serif;
 
     --animate-bar-fill: bar-fill 300ms reverse 100ms forwards;
     @keyframes bar-fill {
         to {
             width: 0;
+        }
+    }
+
+    --animate-flip-back: flip-back 300ms ease-in forwards;
+    @keyframes flip-back {
+        from {
+            transform: rotateY(0deg) scale(1);
+            pointer-events: none;
+        }
+        50% {
+            transform: rotateY(90deg) scale(1.2);
+        }
+        to {
+            transform: rotateY(180deg) scale(1);
+            pointer-events: initial;
+        }
+    }
+
+    --animate-flip-front: flip-front 300ms ease-in forwards;
+    @keyframes flip-front {
+        from {
+            transform: rotateY(180deg) scale(1);
+            pointer-events: none;
+        }
+        50% {
+            transform: rotateY(90deg) scale(1.2);
+        }
+        to {
+            transform: rotateY(0deg) scale(1);
+            pointer-events: initial;
+        }
+    }
+
+    --animate-fade-in: fade-in 300ms ease forwards;
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    --animate-fade-out: fade-out 300ms ease forwards;
+    @keyframes fade-out {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
         }
     }
 }

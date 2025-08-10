@@ -47,16 +47,16 @@ const TYPE_BG = {
 };
 
 
-function Pokemon({ pokemon, setShowEvolutionChain }) {
-    const [flipped, setFlipped] = useState(false);
+function Pokemon({ pokemon }) {
+    const [flipped, setFlipped] = useState(null);
 
     return (
-        <div className={`flex flex-col gap-7 perspective-distant cursor-pointer`}>
+        <div className={`perspective-distant cursor-pointer`}>
             <div
                 className={`
                     w-84 aspect-square
-                    relative transform-3d
-                    ${flipped && 'rotate-y-180'} transition-transform duration-300 ease-linear
+                    relative transform-3d will-change-transform
+                    ${flipped !== null && (flipped === true ? 'animate-flip-back' : 'animate-flip-front')}
                 `}
                 onClick={() => setFlipped(!flipped)}
             >
@@ -92,14 +92,14 @@ function Pokemon({ pokemon, setShowEvolutionChain }) {
                     <div className={`text-sm w-full flex justify-center items-center gap-1`}>
                         <div className={`flex-grow text-center`}>
                             Height <br />
-                            <span className={`text-base ont-semibold`}>{pokemon.height}</span>
+                            <span className={`text-base`}>{pokemon.height}</span>
                         </div>
 
                         <div className={`h-11 w-px bg-gray-700 border-1`}></div>
 
                         <div className={`flex-grow text-center`}>
                             Weight <br />
-                            <span className={`text-base ont-semibold`}>{pokemon.weight}</span>
+                            <span className={`text-base`}>{pokemon.weight}</span>
                         </div>
                     </div>
                 </div>
@@ -137,13 +137,6 @@ function Pokemon({ pokemon, setShowEvolutionChain }) {
                     style={{ backgroundImage: `url(${IMG_URL + pokemon.id + ".png"})` }}></div>
                 </div>
             </div>
-
-            <button
-                className={`
-                    flex justify-center items-center rounded-md text-white py-2 px-8 bg-[#E63946]/80 text-lg font-semibold text-upp shadow-sm
-                `}
-                onClick={ () => setShowEvolutionChain(pokemon.evolutionChain)}
-            >Evolution Chain</button>
         </div>
     )
 }
