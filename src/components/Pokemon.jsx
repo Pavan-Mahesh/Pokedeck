@@ -3,6 +3,8 @@ import Stats from "./Stats.jsx";
 
 const IMG_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
 
+// const TYPE_IMG_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/';
+// const TYPE_IMG_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/legends-arceus/';
 const TYPE_IMG_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/';
 const TYPE_IDS = {
     normal: 1,
@@ -26,24 +28,24 @@ const TYPE_IDS = {
 }
 
 const TYPE_BG = {
-    normal:   `radial-gradient(circle at center, rgba(243, 244, 246, 0.25), rgba(209, 213, 219, 0.25))`,
-    fighting: `radial-gradient(circle at center, rgba(254, 242, 242, 0.25), rgba(252, 165, 165, 0.25))`,
-    flying:   `radial-gradient(circle at center, rgba(248, 250, 252, 0.25), rgba(203, 213, 225, 0.25))`,
-    poison:   `radial-gradient(circle at center, rgba(250, 245, 255, 0.25), rgba(216, 180, 254, 0.25))`,
-    ground:   `radial-gradient(circle at center, rgba(254, 252, 232, 0.25), rgba(234, 179, 8, 0.25))`,
-    rock:     `radial-gradient(circle at center, rgba(250, 250, 249, 0.25), rgba(214, 211, 209, 0.25))`,
-    bug:      `radial-gradient(circle at center, rgba(247, 254, 231, 0.25), rgba(163, 230, 53, 0.25))`,
-    ghost:    `radial-gradient(circle at center, rgba(245, 243, 255, 0.25), rgba(196, 181, 253, 0.25))`,
-    steel:    `radial-gradient(circle at center, rgba(243, 244, 246, 0.25), rgba(203, 213, 225, 0.25))`,
-    fire:     `radial-gradient(circle at center, rgba(255, 247, 237, 0.25), rgba(253, 186, 116, 0.25))`,
-    water:    `radial-gradient(circle at center, rgba(239, 246, 255, 0.25), rgba(147, 197, 253, 0.25))`,
-    grass:    `radial-gradient(circle at center, rgba(240, 253, 244, 0.25), rgba(134, 239, 172, 0.25))`,
-    electric: `radial-gradient(circle at center, rgba(254, 252, 232, 0.25), rgba(253, 224, 71, 0.25))`,
-    psychic:  `radial-gradient(circle at center, rgba(253, 244, 255, 0.25), rgba(232, 121, 249, 0.25))`,
-    ice:      `radial-gradient(circle at center, rgba(240, 249, 255, 0.25), rgba(186, 230, 253, 0.25))`,
-    dragon:   `radial-gradient(circle at center, rgba(240, 249, 255, 0.25), rgba(125, 211, 252, 0.25))`,
-    dark:     `radial-gradient(circle at center, rgba(243, 244, 246, 0.25), rgba(156, 163, 175, 0.25))`,
-    fairy:    `radial-gradient(circle at center, rgba(255, 240, 246, 0.25), rgba(249, 168, 212, 0.25))`,
+    normal:   `radial-gradient(circle at center, rgba(243, 244, 246, 0.5), rgba(209, 213, 219, 0.5))`,
+    fighting: `radial-gradient(circle at center, rgba(254, 242, 242, 0.5), rgba(252, 165, 165, 0.5))`,
+    flying:   `radial-gradient(circle at center, rgba(248, 250, 252, 0.5), rgba(203, 213, 225, 0.5))`,
+    poison:   `radial-gradient(circle at center, rgba(250, 245, 255, 0.5), rgba(216, 180, 254, 0.5))`,
+    ground:   `radial-gradient(circle at center, rgba(254, 252, 232, 0.5), rgba(234, 179, 8, 0.5))`,
+    rock:     `radial-gradient(circle at center, rgba(250, 250, 249, 0.5), rgba(214, 211, 209, 0.5))`,
+    bug:      `radial-gradient(circle at center, rgba(247, 254, 231, 0.5), rgba(163, 230, 53, 0.5))`,
+    ghost:    `radial-gradient(circle at center, rgba(245, 243, 255, 0.5), rgba(196, 181, 253, 0.5))`,
+    steel:    `radial-gradient(circle at center, rgba(243, 244, 246, 0.5), rgba(203, 213, 225, 0.5))`,
+    fire:     `radial-gradient(circle at center, rgba(255, 247, 237, 0.5), rgba(253, 186, 116, 0.5))`,
+    water:    `radial-gradient(circle at center, rgba(239, 246, 255, 0.5), rgba(147, 197, 253, 0.5))`,
+    grass:    `radial-gradient(circle at center, rgba(240, 253, 244, 0.5), rgba(134, 239, 172, 0.5))`,
+    electric: `radial-gradient(circle at center, rgba(254, 252, 232, 0.5), rgba(253, 224, 71, 0.5))`,
+    psychic:  `radial-gradient(circle at center, rgba(253, 244, 255, 0.5), rgba(232, 121, 249, 0.5))`,
+    ice:      `radial-gradient(circle at center, rgba(240, 249, 255, 0.5), rgba(186, 230, 253, 0.5))`,
+    dragon:   `radial-gradient(circle at center, rgba(240, 249, 255, 0.5), rgba(125, 211, 252, 0.5))`,
+    dark:     `radial-gradient(circle at center, rgba(243, 244, 246, 0.5), rgba(156, 163, 175, 0.5))`,
+    fairy:    `radial-gradient(circle at center, rgba(255, 240, 246, 0.5), rgba(249, 168, 212, 0.5))`,
 };
 
 
@@ -62,7 +64,7 @@ function Pokemon({ pokemon }) {
             >
                 <div
                     className={`
-                        w-full aspect-square bg-[#f8f8f1] border-6 border-[#fce278] p-2.5 rounded-2xl shadow-md
+                        w-full aspect-square bg-[#f8f8f1] border-6 border-[#fce278] p-2.5 rounded-2xl shadow-lg
                         flex flex-col items-center justify-between
                         absolute inset-0 backface-hidden
                     `}
@@ -86,7 +88,7 @@ function Pokemon({ pokemon }) {
                     </div>
 
                     <div style={{background: TYPE_BG[pokemon.types[0]]}} className={`h-48 w-full flex justify-center items-center bg-[#f8fafc] border-2 border-neutral-300 rounded-lg mt-1.5 mb-2`}>
-                        <img className={'w-48 saturate-150 drop-shadow-lg drop-shadow-white'} src={IMG_URL + pokemon.id + '.png'} alt={pokemon.name} />
+                        <img className={'w-48 saturate-150 drop-shadow-lg'} src={IMG_URL + pokemon.id + '.png'} alt={pokemon.name} />
                     </div>
 
                     <div className={`text-sm w-full flex justify-center items-center gap-1`}>
@@ -106,7 +108,7 @@ function Pokemon({ pokemon }) {
 
                 <div
                     className={`
-                        w-full aspect-square bg-[#f8f8f1] border-6 border-[#fce278] p-2.5 rounded-2xl shadow-md
+                        w-full aspect-square bg-[#f8f8f1] border-6 border-[#fce278] p-2.5 rounded-2xl shadow-lg
                         flex flex-col items-center justify-between
                         absolute inset-0 backface-hidden rotate-y-180
                     `}
@@ -134,7 +136,7 @@ function Pokemon({ pokemon }) {
                     <Stats stats={pokemon.stats} flipped={flipped} />
 
                     <div className={`absolute inset-x-1/2 -translate-x-1/2 w-44 h-44 bg-cover -z-10 opacity-25`}
-                    style={{ backgroundImage: `url(${IMG_URL + pokemon.id + ".png"})` }}></div>
+                         style={{ backgroundImage: `url(${IMG_URL + pokemon.id + ".png"})` }}></div>
                 </div>
             </div>
         </div>

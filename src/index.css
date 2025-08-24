@@ -8,13 +8,19 @@
             transform: scale(1.05);
         }
         &:active {
-            transform: scale(0.95);
+            transform: scale(1);
         }
+    }
+
+    main {
+        background-repeat: repeat;
+        background-image: url("./assets/bg.png");
     }
 }
 
 @theme {
-    --font-cursive: "Comic Neue", cursive, sans-serif;
+    --font-cursive: "Comic Neue", sans-serif;
+    --inset-shadow-md: inset 0px 0px 2px 1px rgba(0, 0, 0, 0.25);
 
     --animate-bar-fill: bar-fill 300ms reverse 100ms forwards;
     @keyframes bar-fill {

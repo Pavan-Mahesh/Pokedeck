@@ -1,307 +1,470 @@
-import React from "react"
+import React from "react";
 
 import Load from "./Load.jsx";
 import Pokemon from "./Pokemon.jsx";
-import closeX from "../assets/close-x.svg"
+import EvolutionChain from "./EvolutionChain.jsx";
+
+import pokeDeck from "../assets/pokedeck.png";
 
 const POKEDEX_URL = 'https://pokeapi.co/api/v2/pokedex/1';
-
+const TYPE_URL = 'https://pokeapi.co/api/v2/type/';
 const LIMIT = 12;
-const START = 0;
 
-function PokemonGrid () {
-    const [pokemonList, setPokemonList] = React.useState([]);
-    const [pokemonInfo, setPokemonInfo] = React.useState({});
-    const [count, setCount] = React.useState(START);
-    const [isLoading, setIsLoading] = React.useState(false);
+const TYPES = [
+    "normal", "fighting", "flying", "poison", "ground", "rock", "bug", "ghost",
+    "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark", "fairy"
+];
 
+function PokemonGrid() {
+    // Core state
+    const [allPokemon, setAllPokemon] = React.useState([]); // Master list from pokedex
+    const [typeList, setTypeList] = React.useState([]); // All Pokémon of choose type
+    const [displayList, setDisplayList] = React.useState([]); // What we show (filtered/searched)
+    const [pokemonInfo, setPokemonInfo] = React.useState({}); // Detailed pokemon data
+
+    // UI state
+    const [searchText, setSearchText] = React.useState("");
+    const [currType, setCurrType] = React.useState("all");
     const [showEvolutionChain, setShowEvolutionChain] = React.useState([]);
-    const [isClosing, setIsClosing] = React.useState(false);
 
-    const evolutionList = React.useRef({});
+    // Loading states
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [isInitialLoad, setIsInitialLoad] = React.useState(true);
+    const [errorMsg, setErrorMsg] = React.useState("");
 
+    // Pagination
+    const [visibleCount, setVisibleCount] = React.useState(LIMIT);
+
+    // HTML References
+    const headerElem = React.useRef(null);
+
+    // Load initial pokemon list
     React.useEffect(() => {
-        if (globalThis.__POKEMON_LIST_LOADED__ === "done") return;
-
-        globalThis.__POKEMON_LIST_LOADED__ = "in-progress";
-        const controller = new AbortController();
-
-        const fetchPokemonList = async () => {
-            try {
-                setIsLoading(true);
-
-                const res = await fetch(POKEDEX_URL, { signal: controller.signal });
-                if (!res.ok) throw new Error("Failed to fetch pokemon list.");
-
-                const data = await res.json();
-                const list = data.pokemon_entries.map((entry) => ({
-                    name: entry.pokemon_species.name,
-                    url: entry.pokemon_species.url,
-                }));
-
-                setPokemonList(list);
-
-                await loadMorePokemon({ sourceList: list, count: 0 });
-
-                globalThis.__POKEMON_LIST_LOADED__ = "done";
-            } catch (err) {
-                if (err.name !== "AbortError")
-                    console.log(err.name + ": " + err.message)
-
-                if (globalThis.__POKEMON_LIST_LOADED__)
-                    delete globalThis.__POKEMON_LIST_LOADED__;
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        fetchPokemonList();
-
-        return (() => {
-            controller.abort();
-        })
+        loadInitialPokemon();
     }, []);
 
-    async function loadMorePokemon({ sourceList = pokemonList, start = count }) {
-        setIsLoading(true)
-
+    async function loadInitialPokemon() {
         try {
-            const slice = sourceList.slice(start, start + LIMIT).filter(p =>  !pokemonInfo[p.name]);
-            const newInfo = await getInfo(slice, sourceList);
+            setIsLoading(true);
+            const response = await fetch(POKEDEX_URL);
+            if (!response.ok) throw new Error("Failed to fetch pokemon list");
 
-            let updatedList = {...pokemonInfo, ...newInfo};
+            const data = await response.json();
+            const pokemonList = data.pokemon_entries
+                .map(entry => {
+                    const match = entry.pokemon_species.url.match(/\/pokemon-species\/(\d+)\//);
+                    const id = match ? parseInt(match[1], 10) : null;
+                    return id && id <= 1025 ? {
+                        name: entry.pokemon_species.name,
+                        id: id
+                    } : null;
+                })
+                .filter(Boolean);
 
-            const wantedList = new Set();
-            for (let pokemon of Object.values(newInfo)) {
-                pokemon.evolutionChain.forEach(path => (
-                    path.forEach(stage => {
-                        if (!updatedList[stage.name])
-                            wantedList.add(stage)
+            setAllPokemon(pokemonList);
+            setTypeList(pokemonList);
+            setDisplayList(pokemonList);
+
+            // Load first batch of detailed info
+            await loadPokemonDetails(pokemonList.slice(0, LIMIT));
+
+        } catch (error) {
+            console.error("Initial load error:", error);
+            setErrorMsg("Failed to load Pokédex. Please refresh the page.");
+        } finally {
+            setIsLoading(false);
+            setIsInitialLoad(false);
+        }
+    }
+
+    // Handle type filter changes
+    React.useEffect(() => {
+        if (isInitialLoad) return;
+
+        loadTypeFilter();
+    }, [currType]);
+
+    async function loadTypeFilter() {
+        try {
+            setIsLoading(true);
+            setTypeList([]);
+            setDisplayList([]);
+            setVisibleCount(LIMIT);
+
+            let newTypeList = allPokemon;
+            if (currType !== "all") {
+                const response = await fetch(TYPE_URL + currType);
+                if (!response.ok) throw new Error("Failed to fetch type data");
+
+                const data = await response.json();
+                newTypeList = data.pokemon
+                    .map(entry => {
+                        const match = entry.pokemon.url.match(/\/pokemon\/(\d+)\//);
+                        const id = match ? parseInt(match[1], 10) : null;
+                        return id && id <= 1025 ? {
+                            name: entry.pokemon.name,
+                            id: id
+                        } : null;
                     })
-                ))
+                    .filter(Boolean);
             }
 
-            const wantedInfo = await getInfo([...wantedList]);
+            const filtered = applySearch(newTypeList, searchText);
+            setTypeList(newTypeList);
+            setDisplayList(filtered);
 
-            updatedList = {...updatedList, ...wantedInfo};
+            // Load first batch
+            await loadPokemonDetails(filtered.slice(0, LIMIT));
 
-            await delay()
-
-            setPokemonInfo(updatedList);
-            setCount((prev) => prev + LIMIT);
-        } catch (err) {
-            console.log(err.name + ": " + err.message);
+        } catch (error) {
+            console.error("Type filter error:", error);
+            setErrorMsg("Failed to load that type. Try again.");
         } finally {
             setIsLoading(false);
         }
+    }
 
-        async function getInfo(list) {
-            const info = await Promise.all(
-                list.map((pokemon) => {
-                    return getPokemonInfo(pokemon.name)
-                        .then(data => data)
-                        .catch((err) => {
-                            console.log(err.name + ": " + err.message)
-                            return null;
-                        })
-                })
-            );
+    // Search functionality
+    function applySearch(list, query) {
+        if (!query.trim()) return list;
 
-            return info
-                .filter(Boolean)
-                .reduce((obj1, obj2) => ({...obj1, ...obj2 }), {});
+        query = query.replaceAll(" ", "");
+        const searchLower = query.toLowerCase();
+        const searchNumber = parseInt(query);
+
+        return list.filter(pokemon =>
+            pokemon.name.toLowerCase().includes(searchLower) ||
+            pokemon.id === searchNumber
+        );
+    }
+
+    function handleSearch(value) {
+        setSearchText(value);
+
+        const baseList = currType === "all" ? allPokemon : typeList;
+        const filtered = applySearch(baseList, value);
+
+        setDisplayList(filtered);
+        setVisibleCount(LIMIT);
+
+        // Load details for visible pokemon
+        const visible = filtered.slice(0, LIMIT);
+        const needsLoading = visible.filter(p => !pokemonInfo[p.name]);
+        if (needsLoading.length > 0) {
+            loadPokemonDetails(needsLoading);
         }
     }
 
-    async function getPokemonInfo(speciesIdOrName) {
-        const url = "https://pokeapi.co/api/v2/pokemon-species/" + speciesIdOrName;
+    // Load more pokemon
+    async function loadMore() {
+        const nextBatch = displayList.slice(visibleCount, visibleCount + LIMIT);
+        await loadPokemonDetails(nextBatch);
+        setVisibleCount(prev => prev + LIMIT);
+    }
 
-        const speciesRes = await fetch(url);
+    // Load detailed pokemon information
+    async function loadPokemonDetails(pokemonList) {
+        if (!pokemonList.length) return;
 
-        if(!speciesRes.ok) {
-            throw new Error("Failed to fetch pokemon info.");
-        }
-        const speciesData = await speciesRes.json();
+        setIsLoading(true);
 
-        const pokemonInfo = {}
-        pokemonInfo.id = speciesData.id;
-        pokemonInfo.name = speciesData.name;
-        pokemonInfo.flavorText = speciesData.flavor_text_entries.find((entry) => {
-            return entry.flavor_text.length <= 200 && entry.language.name === "en"
-        }).flavor_text.replaceAll("\f", "-");
-        pokemonInfo.evolutionChainURL = speciesData.evolution_chain.url;
-        pokemonInfo.pokemonURL = speciesData.varieties.find((variety) => {
-            return variety.is_default
-        }).pokemon.url;
-
-        const [pokemonRes, evolutionChainRes] = await Promise.all([
-            fetch(pokemonInfo.pokemonURL),
-            fetch(pokemonInfo.evolutionChainURL)
-        ])
-
-        if(!pokemonRes.ok ||  !evolutionChainRes.ok) {
-            throw new Error("Failed to fetch pokemon info.");
-        }
-        const [pokemonData, evolutionChainData] = await Promise.all([
-            pokemonRes.json(),
-            evolutionChainRes.json()
-        ])
-
-        // converting height form decimeter to meters and inches
-        const totalInches = pokemonData.height * 10 / 2.54;
-        let feet = Math.floor(totalInches / 12);
-        let inches = Math.round(totalInches % 12);
-        if (inches === 12) {
-            inches = 0;
-            feet++;
-        }
-
-        // converting weight from hectograms to kg and pounds
-        const lbs = (pokemonData.weight * 0.22046).toFixed(1);
-
-        pokemonInfo.height = `${pokemonData.height / 10} m (${feet}'${inches.toString().padStart(2, "0")}")`;
-        pokemonInfo.weight = `${pokemonData.weight / 10} kgs (${lbs} lbs)`;
-        pokemonInfo.types = pokemonData.types.map((slot) => {
-            return slot.type.name;
-        })
-        pokemonInfo.stats = pokemonData.stats.map((statItem) => {
-            return {
-                name: statItem.stat.name.split("-").map((word) => {
-                    if (word === "hp") return "HP"
-                    if (word === "special") return "Spl."
-                    return word.charAt(0).toUpperCase() + word.slice(1);
-                }).join(" "),
-                base_stat: statItem.base_stat,
-            }
-        })
-
-        // getting evolution data
-        const evolutionChainId = pokemonInfo.evolutionChainURL.match(/\/evolution-chain\/(\d+)\//)[1];
-
-        if(!evolutionList.current[evolutionChainId])
-            evolutionList.current[evolutionChainId] = getEvolutions(evolutionChainData.chain);
-
-        pokemonInfo.evolutionChain = evolutionList.current[evolutionChainId];
-
-        return {[pokemonInfo.name] : pokemonInfo};
-
-        // Recursive DFS to collect all possible evolution chains as arrays of IDs
-        function getEvolutions(chain) {
-            const results = [];
-            traverse(chain, []);
-            return results;
-
-            function traverse(node, path) {
-                // Add current Pokémon to the chain
-                const newPath = [...path, {
-                    name: node.species.name,
-                    id: getIdFromUrl(node.species.url),
-                }];
-
-                // If no further evolutions, this is a completed path
-                if(node.evolves_to.length === 0) {
-                    results.push(newPath);
-                } else {
-                    // Continue recursion through each branch
-                    node.evolves_to.map((evo) => traverse(evo, newPath))
+        try {
+            const promises = pokemonList.map(async (pokemon) => {
+                try {
+                    const details = await fetchPokemonDetails(pokemon.id);
+                    return { [pokemon.name]: details };
+                } catch (error) {
+                    console.error(`Failed to load ${pokemon.name}:`, error);
+                    return null;
                 }
-            }
+            });
 
-            function getIdFromUrl(url) {
-                const matchId = url.match(/\/pokemon-species\/(\d+)\//)
-                // matchId => ["/pokemon-species/1/", "1"]
-                return parseInt(matchId[1], 10);
+            const results = await Promise.all(promises);
+            const newInfo = results.filter(Boolean).reduce((acc, curr) => ({...acc, ...curr}), {});
+
+            setPokemonInfo(prev => ({...prev, ...newInfo}));
+
+        } catch (error) {
+            console.error("Batch loading error:", error);
+            setErrorMsg("Failed to load some Pokémon details.");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    // Fetch individual pokemon details
+    async function fetchPokemonDetails(pokemonId) {
+        const speciesUrl = `https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`;
+        const speciesResponse = await fetch(speciesUrl);
+        if (!speciesResponse.ok) throw new Error("Species fetch failed");
+
+        const speciesData = await speciesResponse.json();
+
+        const pokemonUrl = speciesData.varieties?.find(v => v.is_default)?.pokemon?.url;
+        if (!pokemonUrl) throw new Error("No default pokemon variant");
+
+        const pokemonResponse = await fetch(pokemonUrl);
+        if (!pokemonResponse.ok) throw new Error("Pokemon fetch failed");
+
+        const pokemonData = await pokemonResponse.json();
+
+        // Get flavor text
+        const flavorEntry = speciesData.flavor_text_entries?.find(entry =>
+            entry.language.name === "en" && entry.flavor_text.length <= 200
+        );
+
+        // Calculate height and weight
+        const heightM = pokemonData.height / 10;
+        const weightKg = pokemonData.weight / 10;
+        const totalInches = heightM * 39.37;
+        const feet = Math.floor(totalInches / 12);
+        const inches = Math.round(totalInches % 12);
+        const lbs = (weightKg * 2.20462).toFixed(1);
+
+        // Format stats
+        const stats = pokemonData.stats.map(stat => ({
+            name: stat.stat.name.split("-").map(word => {
+                if (word === "hp") return "HP";
+                if (word === "special") return "Spl.";
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }).join(" "),
+            base_stat: stat.base_stat
+        }));
+
+        // Get evolution chain
+        let evolutionChain = [];
+        if (speciesData.evolution_chain?.url) {
+            try {
+                const evoResponse = await fetch(speciesData.evolution_chain.url);
+                if (evoResponse.ok) {
+                    const evoData = await evoResponse.json();
+                    evolutionChain = parseEvolutionChain(evoData.chain);
+                }
+            } catch (error) {
+                console.error("Evolution chain error:", error);
             }
         }
 
+        return {
+            id: speciesData.id,
+            name: speciesData.name,
+            flavorText: flavorEntry ? flavorEntry.flavor_text.replace(/\f/g, " ") : "",
+            height: `${heightM} m (${feet}'${inches.toString().padStart(2, "0")}")`,
+            weight: `${weightKg} kg (${lbs} lbs)`,
+            types: pokemonData.types.map(type => type.type.name),
+            stats: stats,
+            evolutionChain: evolutionChain
+        };
     }
 
-    function delay() {
-        return new Promise(resolve => setTimeout(resolve, 600));
+    // Parse evolution chain
+    function parseEvolutionChain(chain) {
+        const paths = [];
+
+        function traverse(node, currentPath = []) {
+            const newPath = [...currentPath, {
+                name: node.species.name,
+                id: parseInt(node.species.url.match(/\/(\d+)\/$/)[1])
+            }];
+
+            if (node.evolves_to.length === 0) {
+                paths.push(newPath);
+            } else {
+                node.evolves_to.forEach(evolution => traverse(evolution, newPath));
+            }
+        }
+
+        traverse(chain);
+        return paths;
     }
+
+    // Handle evolution chain modal
+    async function openEvolutionChain(evolutionChain) {
+        if (!evolutionChain?.length) {
+            setShowEvolutionChain([]);
+            return;
+        }
+
+        // Get all pokemon names from evolution chain
+        const allNames = new Set();
+        evolutionChain.forEach(path => {
+            path.forEach(stage => allNames.add(stage.name));
+        });
+
+        // Load missing pokemon info
+        const missing = [...allNames].filter(name => !pokemonInfo[name]);
+        if (missing.length > 0) {
+            try {
+                const missingDetails = await Promise.all(
+                    missing.map(async (name) => {
+                        try {
+                            const details = await fetchPokemonDetails(name);
+                            return { [name]: details };
+                        } catch (error) {
+                            console.error(`Failed to load evolution member ${name}:`, error);
+                            return null;
+                        }
+                    })
+                );
+
+                const newInfo = missingDetails.filter(Boolean).reduce((acc, curr) => ({...acc, ...curr}), {});
+                setPokemonInfo(prev => ({...prev, ...newInfo}));
+            } catch (error) {
+                console.error("Evolution loading error:", error);
+                setErrorMsg("Failed to load evolution data.");
+                return;
+            }
+        }
+
+        setShowEvolutionChain(evolutionChain);
+    }
+
+    // Reset to "all" type
+    function resetToAll() {
+        setCurrType("all");
+        const filtered = applySearch(allPokemon, searchText);
+        setDisplayList(filtered);
+        setVisibleCount(LIMIT);
+        setErrorMsg("");
+
+        // Load visible pokemon that aren't loaded yet
+        const visible = filtered.slice(0, LIMIT);
+        const needsLoading = visible.filter(p => !pokemonInfo[p.name]);
+        if (needsLoading.length > 0) {
+            loadPokemonDetails(needsLoading);
+        }
+    }
+
+    const visiblePokemon = displayList.slice(0, visibleCount);
+    const hasMore = visibleCount < displayList.length;
 
     return (
-        <div className="
-             w-full h-full px-6 py-10 grid grid-cols-[repeat(auto-fit,21rem)] justify-center gap-x-10 gap-y-14 overflow-y-scroll
-        ">
-            {
-                pokemonList.slice(START, count).map(pokemon => {
-                    const pokemonData = pokemonInfo[pokemon?.name];
-                    return (
-                        <div key={pokemonData.name} className={`flex flex-col gap-6`}>
-                            <Pokemon pokemon={pokemonData} setShowEvolutionChain={setShowEvolutionChain} />
+        <>
+            {/* Header */}
+            <div ref={headerElem} className="col-span-full w-full flex flex-col sm:flex-row px-6 py-6 sm:py-4 sm:px-[2.5vw] gap-4 justify-between items-center shadow-lg bg-slate-100">
+                <img src={pokeDeck} alt="Pokedex Logo" className="w-72 object-cover drop-shadow-xl" />
 
-                            <button
-                                className={`
-                                    flex justify-center items-center rounded-md text-white py-2 px-8 bg-[#E63946]/80 text-lg font-semibold shadow-sm cursor-pointer
-                                `}
-                                onClick={ () => setShowEvolutionChain(pokemonData.evolutionChain)}
-                            >Evolution Chain</button>
-                        </div>
-                    )
-                })
-            }
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <label className="flex flex-col">
+                        Search by name or ID
+                        <input
+                            type="text"
+                            value={searchText}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            placeholder="Ex: Pikachu (or) 25"
+                            className="w-full h-10 p-3 border-2 rounded-lg bg-white hover:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
+                        />
+                    </label>
 
-            {
-                isLoading && [...Array(LIMIT)].map((_, idx) =>
-                    <div key={idx} className={`flex flex-col gap-6`}>
-                        <div className={`w-[21rem] aspect-square bg-slate-300 rounded-2xl shadow-md animate-pulse`}></div>
-
-                        <div className={`w-[21rem] h-[2.75rem] bg-slate-300 rounded-md animate-pulse shadow-md`}></div>
-                    </div>
-                )
-            }
-
-            <div className={`w-full col-start-1 -col-end-1`}>
-                {
-                    count < 1025
-                        ?   <button
-                                className={`
-                                    m-auto w-64 h-14 flex justify-center items-center rounded-md bg-[#f49545] text-white text-xl font-semibold ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}
-                                `}
-                                disabled={isLoading}
-                                onClick={loadMorePokemon}
-                            >{isLoading ? <Load sideText={true} /> : 'Load more Pokemon'}</button>
-                        :   <h1 className={`text-center text-2xl font-bold font-cursive`}>You have reached the end of the deck...</h1>
-                }
+                    <label className="flex flex-col">
+                        Type
+                        <select
+                            value={currType}
+                            onChange={(e) => setCurrType(e.target.value)}
+                            className="h-10 px-3 rounded-lg border-2 bg-white hover:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
+                        >
+                            <option value="all">All</option>
+                            {TYPES.map(type => (
+                                <option key={type} value={type}>
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
             </div>
 
-            {
-                (showEvolutionChain.length > 0 || isClosing) &&
-                <div
-                    className={`w-full h-full flex justify-center pt-8 p-4 overflow-y-auto overflow-x-hidden absolute inset-0 bg-black/80
-                    ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
-                    onAnimationEnd={() => {
-                        if (isClosing) {
-                            setIsClosing(false);
-                            setShowEvolutionChain([]);
-                        }
-                    }}
-                >
-                    <div className={`my-auto flex flex-wrap justify-center gap-x-8 gap-y-14`}> {
-                        showEvolutionChain.map((path, idx) => {
-                            return (
-                                <div className={`h-max shrink-0 flex flex-col xl:flex-row justify-center gap-6 bg-slate-300/60 py-8 px-6 rounded-xl overflow-y-visible`} key={idx}>{
-                                    path.map((stage) => {
-                                        const pokemonData = pokemonInfo[stage.name];
-                                        return <Pokemon key={pokemonData.name} pokemon={pokemonData} />
-                                    })
-                                }</div>
-                            )
-                        })
-                    } </div>
-                   <button
-                       className={`w-12 h-12 rounded-full fixed right-6 top-6 bg-black/60 p-2 cursor-pointer`}
-                       onClick={() => {
-                           setIsClosing(true);
-                       }}
-                   >
-                       <img src={closeX} alt="X" />
-                   </button>
+            {/* Error Message */}
+            {errorMsg && (
+                <div className="mx-10 my-4 p-4 bg-red-100 border border-red-300 text-red-900 rounded-md flex justify-between items-center">
+                    <span>{errorMsg}</span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={resetToAll}
+                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                            Reset
+                        </button>
+                        <button
+                            onClick={() => setErrorMsg("")}
+                            className="px-3 py-1 bg-white border rounded hover:bg-gray-50"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
                 </div>
-            }
-        </div>
-    )
+            )}
+
+            <div
+                className={`
+                    w-fit px-6 py-2 bg-gray-900/60 rounded-full sticky top-8 z-10
+                    mx-auto mt-10 text-xl text-slate-100 font-bold shadow-xs shadow-gray-500 cursor-pointer
+                `}
+                onClick={() => {headerElem.current.scrollIntoView({ behavior: "smooth" })}}
+            >{displayList.length} Pokémon Results</div>
+
+            {/* Pokemon Grid */}
+            <div className="px-10 py-10 grid grid-cols-[repeat(auto-fit,21rem)] justify-center gap-x-10 gap-y-14">
+                {visiblePokemon.map((pokemon) => {
+                    const pokemonData = pokemonInfo[pokemon.name];
+
+                    return (
+                        <div key={pokemon.id} className="flex flex-col gap-6">
+                            {pokemonData ? (
+                                <Pokemon pokemon={pokemonData} setShowEvolutionChain={setShowEvolutionChain} />
+                            ) : (
+                                <div className="w-[21rem] aspect-square bg-slate-300 rounded-2xl shadow-md animate-pulse" />
+                            )}
+
+                            <div className="w-[21rem] h-[2.75rem]">
+                                {pokemonData ? (
+                                    <button
+                                        onClick={() => openEvolutionChain(pokemonData.evolutionChain)}
+                                        className="w-full h-full bg-[#E63946]/90 text-white rounded-md font-semibold shadow-lg transition"
+                                    >
+                                        Evolution Chain
+                                    </button>
+                                ) : (
+                                    <div className="w-full h-full bg-slate-300 rounded-md animate-pulse" />
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {/* Load More Button */}
+                {!isInitialLoad && (
+                    <div className="w-full col-start-1 -col-end-1 flex justify-center">
+                        {hasMore ? (
+                            <button
+                                onClick={loadMore}
+                                disabled={isLoading}
+                                className="w-64 h-14 bg-[#f49545] hover:bg-[#e8844a] disabled:opacity-50 text-white text-xl font-semibold rounded-md transition flex items-center justify-center"
+                            >
+                                {isLoading ? <Load sideText={true} /> : 'Load More Pokemon'}
+                            </button>
+                        ) : (
+                            <h1 className="text-3xl font-bold text-center">
+                                {displayList.length === 0
+                                    ? "No Pokémon found..."
+                                    : "You have reached the end of the deck..."
+                                }
+                            </h1>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Evolution Chain Modal */}
+            {showEvolutionChain.length > 0 && (
+                <EvolutionChain
+                    showEvolutionChain={showEvolutionChain}
+                    setShowEvolutionChain={setShowEvolutionChain}
+                    pokemonInfo={pokemonInfo}
+                />
+            )}
+        </>
+    );
 }
 
 export default PokemonGrid;
