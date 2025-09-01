@@ -6,7 +6,7 @@ function App() {
     const mainElem = React.useRef(null);
 
     return (
-        <main ref={mainElem} className="w-screen h-full flex flex-col font-mpm-cursive font-semibold overflow-y-scroll overflow-x-hidden overscroll-none">
+        <main ref={mainElem} className="w-screen h-svh flex flex-col font-mpm-cursive font-semibold overflow-y-scroll overflow-x-hidden overscroll-none">
             <PokemonGrid mainElem={mainElem} />
         </main>
     )
