@@ -88,7 +88,7 @@ function Pokemon({ pokemon }) {
                     </div>
 
                     <div style={{background: TYPE_BG[pokemon.types[0]]}} className={`h-48 w-full flex justify-center items-center bg-[#f8fafc] border-2 border-neutral-300 rounded-lg mt-1.5 mb-2`}>
-                        <img className={'w-48 saturate-150 drop-shadow-lg'} src={IMG_URL + pokemon.id + '.png'} alt={pokemon.name} />
+                        <img className={'w-48 saturate-150 drop-shadow-lg'} src={IMG_URL + pokemon.id + '.png'} alt={pokemon.name} loading={`lazy`} />
                     </div>
 
                     <div className={`text-sm w-full flex justify-center items-center gap-1`}>
