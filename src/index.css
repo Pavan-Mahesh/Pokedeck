@@ -12,13 +12,6 @@
         }
     }
 
-    html,
-    body,
-    #root {
-        height: 100svh;
-        overflow: hidden;
-    }
-
     main {
         background-image: url("./assets/bg.png");
     }
