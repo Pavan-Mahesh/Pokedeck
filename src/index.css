@@ -12,6 +12,10 @@
         }
     }
 
+    #root {
+        height: fit-content;
+    }
+
     main {
         background-image: url("./assets/bg.png");
     }
