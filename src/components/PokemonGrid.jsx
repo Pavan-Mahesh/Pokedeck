@@ -5,6 +5,7 @@ import Pokemon from "./Pokemon.jsx";
 import EvolutionChain from "./EvolutionChain.jsx";
 
 import pokeDeck from "../assets/pokedeck.png";
+import upArrow from "../assets/up-arrow.svg";
 
 const POKEDEX_URL = 'https://pokeapi.co/api/v2/pokedex/1';
 const TYPE_URL = 'https://pokeapi.co/api/v2/type/';
@@ -15,7 +16,7 @@ const TYPES = [
     "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark", "fairy"
 ];
 
-function PokemonGrid() {
+function PokemonGrid({ mainElem }) {
     // Core state
     const [allPokemon, setAllPokemon] = React.useState([]); // Master list from pokedex
     const [typeList, setTypeList] = React.useState([]); // All Pokémon of choose type
@@ -26,6 +27,7 @@ function PokemonGrid() {
     const [searchText, setSearchText] = React.useState("");
     const [currType, setCurrType] = React.useState("all");
     const [showEvolutionChain, setShowEvolutionChain] = React.useState([]);
+    const [isScrolled, setIsScrolled] = React.useState(false);
 
     // Loading states
     const [isLoading, setIsLoading] = React.useState(false);
@@ -41,6 +43,10 @@ function PokemonGrid() {
 
     // Load initial Pokémon list
     React.useEffect(() => {
+        mainElem.current.addEventListener('scroll', () => {
+            setIsScrolled(headerElem.current.getBoundingClientRect().top !== 0);
+        })
+
         loadInitialPokemon();
     }, []);
 
@@ -288,13 +294,13 @@ function PokemonGrid() {
 
         setIsShowingEvolutionChain(true);
 
-        // Get all pokemon names from evolution chain
+        // Get all pokémon names from evolution chain
         const allNames = new Set();
         evolutionChain.forEach(path => {
             path.forEach(stage => allNames.add(stage.name));
         });
 
-        // Load missing pokemon info
+        // Load missing pokémon info
         const missing = [...allNames].filter(name => !pokemonInfo[name]);
         if (missing.length > 0) {
             try {
@@ -403,8 +409,20 @@ function PokemonGrid() {
                     w-fit px-6 py-2 bg-gray-900/60 rounded-full sticky top-8 z-10
                     mx-auto mt-10 text-xl text-slate-100 font-bold shadow-xs shadow-gray-500 cursor-pointer
                 `}
-                onClick={() => {headerElem.current.scrollIntoView({ behavior: "smooth" })}}
-            >{displayList.length} Pokémon Results</div>
+                onClick={() => {
+                    if (isScrolled) headerElem.current.scrollIntoView({ behavior: "smooth" })
+                }}
+            > {
+                isScrolled
+                    ? (
+                        <div className={`flex gap-3`}>
+                            <img className={`w-6`} src={upArrow} alt={`\u2191`} />
+                            Scroll to Top
+                            <img className={`w-6`} src={upArrow} alt={`\u2191`} />
+                        </div>
+                    )
+                    : `${displayList.length} Pokémon Results`
+            } </div>
 
             {/* Pokemon Grid */}
             <div className="px-10 py-10 grid grid-cols-[repeat(auto-fit,21rem)] justify-center gap-x-10 gap-y-14">

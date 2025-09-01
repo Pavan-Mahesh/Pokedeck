@@ -3,9 +3,11 @@ import React from "react";
 import PokemonGrid from './components/PokemonGrid.jsx'
 
 function App() {
+    const mainElem = React.useRef(null);
+
     return (
-        <main className="w-full h-lvh bg-slate-100 font-cursive font-semibold overflow-y-scroll overflow-x-hidden overscroll-none">
-            <PokemonGrid />
+        <main ref={mainElem} className="w-full h-lvh bg-slate-100 font-cursive font-semibold overflow-y-scroll overflow-x-hidden overscroll-none">
+            <PokemonGrid mainElem={mainElem} />
         </main>
     )
 }

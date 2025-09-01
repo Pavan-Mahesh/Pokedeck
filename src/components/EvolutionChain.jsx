@@ -1,8 +1,8 @@
 import React from "react";
 
 import Pokemon from "./Pokemon.jsx";
-import closeX from "../assets/close-x.svg"
 import Load from "./Load.jsx";
+import closeX from "../assets/close-x.svg"
 
 function EvolutionChain({ setIsShowingEvolutionChain, showEvolutionChain, setShowEvolutionChain, pokemonInfo }) {
     const [isClosing, setIsClosing] = React.useState(false);
@@ -36,12 +36,12 @@ function EvolutionChain({ setIsShowingEvolutionChain, showEvolutionChain, setSho
                     )
             } </div>
             <button
-                className={`w-12 h-12 rounded-full fixed right-6 top-6 bg-black/60 p-2 cursor-pointer`}
+                className={`w-12 h-12 rounded-full fixed right-6 top-6 bg-black/60 text-white text-xl p-2 cursor-pointer`}
                 onClick={() => {
                     setIsClosing(true);
                 }}
             >
-                <img src={closeX} alt="X" />
+                <img src={closeX} alt={`\u26CC`} />
             </button>
         </div>
     );
