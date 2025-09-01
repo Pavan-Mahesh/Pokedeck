@@ -44,29 +44,6 @@ Here’s a peek into the PokeDeck experience:
 
 ## 🚀 Getting Started
 
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/your-username/pokedeck.git
-cd pokedeck
-```
-
-### 2. Install dependencies
-
-```bash
-npm install
-```
-
-### 3. Run the app
-
-```bash
-npm start
-```
-
-Now open **[http://localhost:5173/](http://localhost:5173/)** in your browser.
-
-## 🚀 Getting Started
-
 ### 1️⃣ Clone the repo
 
 ```
@@ -86,9 +63,7 @@ npm install
 npm run dev
 ```
 
-
-Now open http://localhost:5173/
-and explore!
+Now open http://localhost:5173/ in your browser and explore!
 
 ---
 
