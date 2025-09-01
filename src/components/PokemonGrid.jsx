@@ -29,6 +29,7 @@ function PokemonGrid() {
 
     // Loading states
     const [isLoading, setIsLoading] = React.useState(false);
+    const [isShowingEvolutionChain, setIsShowingEvolutionChain] = React.useState(false);
     const [isInitialLoad, setIsInitialLoad] = React.useState(true);
     const [errorMsg, setErrorMsg] = React.useState("");
 
@@ -38,7 +39,7 @@ function PokemonGrid() {
     // HTML References
     const headerElem = React.useRef(null);
 
-    // Load initial pokemon list
+    // Load initial Pokémon list
     React.useEffect(() => {
         loadInitialPokemon();
     }, []);
@@ -162,7 +163,7 @@ function PokemonGrid() {
         setVisibleCount(prev => prev + LIMIT);
     }
 
-    // Load detailed pokemon information
+    // Load detailed Pokémon information
     async function loadPokemonDetails(pokemonList) {
         if (!pokemonList.length) return;
 
@@ -192,7 +193,7 @@ function PokemonGrid() {
         }
     }
 
-    // Fetch individual pokemon details
+    // Fetch individual Pokémon details
     async function fetchPokemonDetails(pokemonId) {
         const speciesUrl = `https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`;
         const speciesResponse = await fetch(speciesUrl);
@@ -284,6 +285,8 @@ function PokemonGrid() {
             setShowEvolutionChain([]);
             return;
         }
+
+        setIsShowingEvolutionChain(true);
 
         // Get all pokemon names from evolution chain
         const allNames = new Set();
@@ -441,7 +444,7 @@ function PokemonGrid() {
                                 disabled={isLoading}
                                 className="w-64 h-14 bg-[#f49545] hover:bg-[#e8844a] disabled:opacity-50 text-white text-xl font-semibold rounded-md transition flex items-center justify-center"
                             >
-                                {isLoading ? <Load sideText={true} /> : 'Load More Pokemon'}
+                                {isLoading ? <Load /> : 'Load More Pokemon'}
                             </button>
                         ) : (
                             <h1 className="text-3xl font-bold text-center">
@@ -456,8 +459,9 @@ function PokemonGrid() {
             </div>
 
             {/* Evolution Chain Modal */}
-            {showEvolutionChain.length > 0 && (
+            {isShowingEvolutionChain > 0 && (
                 <EvolutionChain
+                    setIsShowingEvolutionChain={setIsShowingEvolutionChain}
                     showEvolutionChain={showEvolutionChain}
                     setShowEvolutionChain={setShowEvolutionChain}
                     pokemonInfo={pokemonInfo}
