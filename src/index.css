@@ -6,7 +6,7 @@
         overscroll-behavior: none;
     }
 
-    html, body, root, main {
+    html, body, #root, main {
         height: 100svh;
     }
 
@@ -20,7 +20,7 @@
         }
     }
 
-    main {
+    body {
         background-image: url("./assets/bg.png");
     }
 }
