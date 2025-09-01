@@ -6,6 +6,12 @@ Every kid who watched Pokémon dreamed of having a Pokédex just like in the ani
 
 ---
 
+## 🚀 Live Demo
+
+Check out the project here: [https://pokedeck-mpm.vercel.app](https://pokedeck-mpm.vercel.app)
+
+---
+
 ## ✨ Features
 
 * ⚡ **Single Page Application (SPA)** — built in React, no full page reloads
@@ -26,20 +32,20 @@ Here’s a peek into the PokeDeck experience:
 
 🔹 Home Page
 
-![Home Page](./src/assets/screenshots/home.png)
+![Home Page](docs/screenshots/home.png)
 
 🔹 Cards Revealing Info
 
-![Cards Revealing Info](./src/assets/screenshots/cards-flip.png)
+![Cards Revealing Info](docs/screenshots/cards-flip.png)
 
 🔹 Search & Filter
 
-![Search & Filter](./src/assets/screenshots/search-and-filter.png)
+![Search & Filter](docs/screenshots/search-and-filter.png)
 
 
 🔹 Evolution Chain
 
-![Evolution Chain](./src/assets/screenshots/evolution-chain.png)
+![Evolution Chain](docs/screenshots/evolution-chain.png)
 
 ---
 
