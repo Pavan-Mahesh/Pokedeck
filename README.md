@@ -24,11 +24,22 @@ Every kid who watched Pokémon dreamed of having a Pokédex just like in the ani
 
 Here’s a peek into the PokeDeck experience:
 
-🔹 Home View
+🔹 Home Page
 
-🔹 Pokémon Cards
+![Home Page](./src/assets/screenshots/home.png)
 
-🔹 Search + Modal View
+🔹 Cards Revealing Info
+
+![Cards Revealing Info](./src/assets/screenshots/cards-flip.png)
+
+🔹 Search & Filter
+
+![Search & Filter](./src/assets/screenshots/search-and-filter.png)
+
+
+🔹 Evolution Chain
+
+![Evolution Chain](./src/assets/screenshots/evolution-chain.png)
 
 ---
 

@@ -407,7 +407,7 @@ function PokemonGrid({ mainElem }) {
 
             <div
                 className={`
-                    w-fit px-6 py-2 bg-gray-900/60 rounded-full sticky top-8 z-10
+                    w-fit px-6 py-2 bg-gray-900/50 rounded-full sticky top-8 z-10
                     mx-auto mt-10 text-xl text-slate-100 shadow-xs shadow-gray-500 cursor-pointer
                 `}
                 onClick={() => {
@@ -417,9 +417,9 @@ function PokemonGrid({ mainElem }) {
                 isScrolled
                     ? (
                         <div className={`flex gap-3`}>
-                            <img className={`w-6`} src={upArrow} alt={`\u2191`} />
+                            <img className={`w-5`} src={upArrow} alt={`\u2191`} />
                             Scroll to Top
-                            <img className={`w-6`} src={upArrow} alt={`\u2191`} />
+                            <img className={`w-5`} src={upArrow} alt={`\u2191`} />
                         </div>
                     )
                     : `${displayList.length} Pokémon Results`
@@ -487,7 +487,9 @@ function PokemonGrid({ mainElem }) {
                 />
             )}
 
-            <Footer />
+            <div className={`mt-auto`}>
+                <Footer />
+            </div>
         </>
     );
 }

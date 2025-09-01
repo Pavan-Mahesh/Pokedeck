@@ -17,10 +17,9 @@ export default function Footer() {
                     </a>
                 </p>
 
-                <div className="flex gap-2 items-center">
-                    <p className={`mr-2`}>
-                        © {new Date().getFullYear()}{" "}
-                        <span className={`text-xl font-bold`}>M. Pavan Mahesh</span>
+                <div className="flex gap-3 items-center">
+                    <p className={`mr-1`}>
+                        © {new Date().getFullYear()} M. Pavan Mahesh
                     </p>
 
                     <a
