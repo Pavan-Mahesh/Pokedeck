@@ -58,7 +58,7 @@ function Pokemon({ pokemon }) {
                 className={`
                     w-84 aspect-square
                     relative transform-3d will-change-transform
-                    ${flipped !== null && (flipped === true ? 'animate-flip-back' : 'animate-flip-front')}
+                    ${flipped !== null && (flipped === true ? 'animate-mpm-flip-back' : 'animate-mpm-flip-front')}
                 `}
                 onClick={() => setFlipped(!flipped)}
             >
@@ -78,7 +78,7 @@ function Pokemon({ pokemon }) {
                         <div className={`flex flex-col gap-1`}>
                             { pokemon.types.map((type) => (
                                 <img
-                                    key={pokemon.name + type}
+                                    key={'mpm-'+pokemon.name + type}
                                     className={`h-5`}
                                     src={TYPE_IMG_URL + TYPE_IDS[type] + '.png'}
                                     alt={type} />
@@ -122,7 +122,7 @@ function Pokemon({ pokemon }) {
                         <div className={`flex flex-col gap-1`}>
                             { pokemon.types.map((type) => (
                                 <img
-                                    key={pokemon.name + type}
+                                    key={'mpm-'+pokemon.name + type}
                                     className={`h-5`}
                                     src={TYPE_IMG_URL + TYPE_IDS[type] + '.png'}
                                     alt={type} />

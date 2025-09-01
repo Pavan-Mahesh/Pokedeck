@@ -33,10 +33,10 @@ function Stats({ stats, flipped }) {
         const percentage = statItem.base_stat / MAX_STATS[statItem.name] * 100;
 
         return (
-            <div key={statItem.name} className={`col-span-4 grid grid-cols-subgrid gap-3 place-items-center`}>
+            <div key={'mpm-'+statItem.name} className={`col-span-4 grid grid-cols-subgrid gap-3 place-items-center`}>
                 <div className={`justify-self-start`}>{statItem.name}</div>
                 <div className={`relative w-28 h-2.5 rounded bg-gray-300 place-self-center`}>
-                    <div style={{width: `${percentage}%`, backgroundColor: color}} className={`h-full rounded ${flipped && 'animate-bar-fill'}`}></div>
+                    <div style={{width: `${percentage}%`, backgroundColor: color}} className={`h-full rounded ${flipped && 'animate-mpm-bar-fill'}`}></div>
                 </div>
                 <div className={`justify-self-end`}>{statItem.base_stat} / {MAX_STATS[statItem.name]}</div>
             </div>

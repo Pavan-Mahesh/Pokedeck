@@ -10,7 +10,7 @@ function EvolutionChain({ setIsShowingEvolutionChain, showEvolutionChain, setSho
     return (
         <div
             className={`w-full h-lvh flex justify-center pt-8 p-4 overflow-y-auto overflow-x-hidden absolute z-10 inset-0 bg-black/80
-                    ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+                    ${isClosing ? 'animate-mpm-fade-out' : 'animate-mpm-fade-in'}`}
             onAnimationEnd={() => {
                 if (isClosing) {
                     setIsClosing(false);
@@ -25,10 +25,10 @@ function EvolutionChain({ setIsShowingEvolutionChain, showEvolutionChain, setSho
                     : (
                         showEvolutionChain.map((path, idx) => {
                             return (
-                                <div className={`h-max shrink-0 flex flex-col xl:flex-row justify-center gap-6 bg-slate-300/60 py-8 px-6 rounded-xl overflow-y-visible`} key={idx}>{
+                                <div className={`h-max shrink-0 flex flex-col xl:flex-row justify-center gap-6 bg-slate-300/60 py-8 px-6 rounded-xl overflow-y-visible`} key={'mpm-'+idx}>{
                                     path.map((stage) => {
                                         const pokemonData = pokemonInfo[stage.name];
-                                        return <Pokemon key={pokemonData.name} pokemon={pokemonData} />
+                                        return <Pokemon key={'mpm-'+pokemonData.name} pokemon={pokemonData} />
                                     })
                                 }</div>
                             )

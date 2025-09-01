@@ -3,6 +3,7 @@ import React from "react";
 import Load from "./Load.jsx";
 import Pokemon from "./Pokemon.jsx";
 import EvolutionChain from "./EvolutionChain.jsx";
+import Footer from "./Footer.jsx";
 
 import pokeDeck from "../assets/pokedeck.png";
 import upArrow from "../assets/up-arrow.svg";
@@ -361,7 +362,7 @@ function PokemonGrid({ mainElem }) {
                             value={searchText}
                             onChange={(e) => handleSearch(e.target.value)}
                             placeholder="Ex: Pikachu (or) 25"
-                            className="w-full h-10 p-3 border-2 rounded-lg bg-white hover:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
+                            className="w-full h-10 p-3 border-2 rounded-lg bg-white hover:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition inset-shadow-md"
                         />
                     </label>
 
@@ -370,11 +371,11 @@ function PokemonGrid({ mainElem }) {
                         <select
                             value={currType}
                             onChange={(e) => setCurrType(e.target.value)}
-                            className="h-10 px-3 rounded-lg border-2 bg-white hover:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
+                            className="h-10 px-3 rounded-lg border-2 bg-white hover:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition inset-shadow-md"
                         >
                             <option value="all">All</option>
                             {TYPES.map(type => (
-                                <option key={type} value={type}>
+                                <option key={'mpm-'+type} value={type}>
                                     {type.charAt(0).toUpperCase() + type.slice(1)}
                                 </option>
                             ))}
@@ -407,7 +408,7 @@ function PokemonGrid({ mainElem }) {
             <div
                 className={`
                     w-fit px-6 py-2 bg-gray-900/60 rounded-full sticky top-8 z-10
-                    mx-auto mt-10 text-xl text-slate-100 font-bold shadow-xs shadow-gray-500 cursor-pointer
+                    mx-auto mt-10 text-xl text-slate-100 shadow-xs shadow-gray-500 cursor-pointer
                 `}
                 onClick={() => {
                     if (isScrolled) headerElem.current.scrollIntoView({ behavior: "smooth" })
@@ -430,7 +431,7 @@ function PokemonGrid({ mainElem }) {
                     const pokemonData = pokemonInfo[pokemon.name];
 
                     return (
-                        <div key={pokemon.id} className="flex flex-col gap-6">
+                        <div key={'mpm-'+pokemon.id} className="flex flex-col gap-6">
                             {pokemonData ? (
                                 <Pokemon pokemon={pokemonData} setShowEvolutionChain={setShowEvolutionChain} />
                             ) : (
@@ -485,6 +486,8 @@ function PokemonGrid({ mainElem }) {
                     pokemonInfo={pokemonInfo}
                 />
             )}
+
+            <Footer />
         </>
     );
 }
