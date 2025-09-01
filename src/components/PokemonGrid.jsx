@@ -461,7 +461,7 @@ function PokemonGrid({ mainElem }) {
                             <button
                                 onClick={loadMore}
                                 disabled={isLoading}
-                                className="w-64 h-14 bg-[#f49545] hover:bg-[#e8844a] disabled:opacity-50 text-white text-xl font-semibold rounded-md transition flex items-center justify-center"
+                                className="w-64 h-14 bg-[#f49545] hover:bg-[#e8844a] disabled:opacity-80 text-white text-xl font-semibold rounded-md transition flex items-center justify-center"
                             >
                                 {isLoading ? <Load /> : 'Load More Pokemon'}
                             </button>
