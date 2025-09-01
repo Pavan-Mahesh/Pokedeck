@@ -349,7 +349,7 @@ function PokemonGrid({ mainElem }) {
     const hasMore = visibleCount < displayList.length;
 
     return (
-        <div className={`h-svh`}>
+        <>
             {/* Header */}
             <div ref={headerElem} className="col-span-full w-full flex flex-col sm:flex-row px-6 py-6 sm:py-4 sm:px-[2.5vw] gap-4 justify-between items-center shadow-lg bg-slate-100">
                 <img src={pokeDeck} alt="Pokedex Logo" className="w-72 object-cover drop-shadow-xl" />
@@ -490,7 +490,7 @@ function PokemonGrid({ mainElem }) {
             <div className={`mt-auto`}>
                 <Footer />
             </div>
-        </div>
+        </>
     );
 }
 
