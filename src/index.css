@@ -2,6 +2,10 @@
 @import "tailwindcss";
 
 @layer base {
+    * {
+        overscroll-behavior: none;
+    }
+
     button {
         transition: transform 200ms ease;
         &:hover {
@@ -10,10 +14,6 @@
         &:active {
             transform: scale(1);
         }
-    }
-
-    html, body, root {
-        height: 100svh !important;
     }
 
     body {
