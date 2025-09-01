@@ -12,8 +12,10 @@
         }
     }
 
+    html,
+    body,
     #root {
-        height: fit-content;
+        height: 100svh;
     }
 
     main {
