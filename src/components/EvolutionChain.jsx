@@ -9,7 +9,7 @@ function EvolutionChain({ setIsShowingEvolutionChain, showEvolutionChain, setSho
 
     return (
         <div
-            className={`w-full h-svh flex justify-center pt-8 p-4 overflow-y-auto overflow-x-hidden absolute overscroll-none z-10 inset-0 bg-black/80
+            className={`w-full h-svh flex justify-center pt-8 p-4 overflow-y-auto overflow-x-hidden fixed overscroll-none z-10 inset-0 bg-black/80
                     ${isClosing ? 'animate-mpm-fade-out' : 'animate-mpm-fade-in'}`}
             onAnimationEnd={() => {
                 if (isClosing) {
