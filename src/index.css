@@ -2,14 +2,6 @@
 @import "tailwindcss";
 
 @layer base {
-    * {
-        overscroll-behavior: none;
-    }
-
-    html, body, #root, main {
-        height: 100svh;
-    }
-
     button {
         transition: transform 200ms ease;
         &:hover {
@@ -20,7 +12,7 @@
         }
     }
 
-    body {
+    main {
         background-image: url("./assets/bg.png");
     }
 }
