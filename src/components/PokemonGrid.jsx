@@ -478,6 +478,7 @@ function PokemonGrid({ mainElem }) {
                 </div>
             )}
 
+            {/* results count & scroll to top */}
             <div
                 className={`
                     w-fit px-6 py-2 bg-gray-900/50 rounded-full sticky top-8 z-10
