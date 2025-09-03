@@ -35,6 +35,7 @@ function PokemonGrid({ mainElem }) {
 
     // booleans
     const [isLoading, setIsLoading] = React.useState(false);
+    const [isLoadMore, setIsLoadMore] = React.useState(false);
     const [isShowingEvolutionChain, setIsShowingEvolutionChain] = React.useState(false);
     const [isInitialLoad, setIsInitialLoad] = React.useState(true);
     const [errorMsg, setErrorMsg] = React.useState("");
@@ -107,7 +108,7 @@ function PokemonGrid({ mainElem }) {
     async function loadGenerationFilter() {
         try {
             setIsLoading(true);
-            setGenList([]);
+            // setGenList([]);
 
             let newGenList = allPokemon;
             if (currGen !== "all") {
@@ -129,7 +130,6 @@ function PokemonGrid({ mainElem }) {
             }
 
             setGenList(newGenList);
-            setVisibleCount(LIMIT);
             setErrorMsg("");
 
         } catch (error) {
@@ -150,8 +150,8 @@ function PokemonGrid({ mainElem }) {
     async function loadTypeFilter() {
         try {
             setIsLoading(true);
-            setTypeList([]);
-            setDisplayList([]);
+            // setTypeList([]);
+            // setDisplayList([]);
             setVisibleCount(LIMIT);
 
             let newTypeList = genList;
@@ -230,6 +230,7 @@ function PokemonGrid({ mainElem }) {
     async function loadPokemonDetails(pokemonList) {
         if (!pokemonList || pokemonList.length === 0) return;
         setIsLoading(true);
+        setIsLoadMore(true);
 
         try {
             const promises = pokemonList.map(async (pokemon) => {
@@ -252,6 +253,7 @@ function PokemonGrid({ mainElem }) {
             setErrorMsg("Failed to load some Pokémon details.");
         } finally {
             setIsLoading(false);
+            setIsLoadMore(false);
         }
     }
 
@@ -486,15 +488,17 @@ function PokemonGrid({ mainElem }) {
                     if (isScrolled) headerElem.current.scrollIntoView({ behavior: "smooth" })
                 }}
             > {
-                isScrolled
-                    ? (
-                        <div className={`flex gap-3`}>
-                            <img className={`w-5`} src={upArrow} alt={`\u2191`} />
-                            Scroll to Top
-                            <img className={`w-5`} src={upArrow} alt={`\u2191`} />
-                        </div>
-                    )
-                    : `${displayList.length} Pokémon Results`
+                isLoading && !isLoadMore
+                    ? <Load />
+                    : isScrolled
+                        ? (
+                            <div className={`flex gap-3`}>
+                                <img className={`w-5`} src={upArrow} alt={`\u2191`} />
+                                Scroll to Top
+                                <img className={`w-5`} src={upArrow} alt={`\u2191`} />
+                            </div>
+                        )
+                        : `${displayList.length} Pokémon Results`
             } </div>
 
             {/* Grid */}
@@ -537,7 +541,7 @@ function PokemonGrid({ mainElem }) {
                             >
                                 {isLoading ? <Load /> : 'Load More Pokemon'}
                             </button>
-                        ) : (
+                        ) : !isLoading && (
                             <h1 className="text-3xl font-bold text-center">
                                 {displayList.length === 0
                                     ? "No Pokémon found..."
