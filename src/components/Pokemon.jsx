@@ -73,7 +73,7 @@ function Pokemon({ pokemon }) {
                         <div className={`flex flex-col leading-0 font-semibold`}>
                             <span className={`text-base text-gray-400`}>
                                 {(pokemon.id).toString().padStart(4, "0")}
-                                {' ( '}{(pokemon.generation[0]).toUpperCase() + pokemon.generation.substring(1)}{' )'}
+                                {` ( ${pokemon.generation} )`}
                             </span>
 
                             <span className={`text-xl`}>{(pokemon.name[0]).toUpperCase() + pokemon.name.substring(1)}</span>

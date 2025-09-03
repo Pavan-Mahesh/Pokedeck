@@ -271,6 +271,9 @@ function PokemonGrid({ mainElem }) {
 
         const pokemonData = await pokemonResponse.json();
 
+        const matchGeneration = speciesData.generation.name.match(/\b[ivx]+/);
+        const generation = matchGeneration[0].toUpperCase();
+
         const flavorEntry = speciesData.flavor_text_entries?.find(entry =>
             entry.language.name === "en" && entry.flavor_text.length <= 200
         );
@@ -307,7 +310,7 @@ function PokemonGrid({ mainElem }) {
         return {
             id: speciesData.id,
             name: speciesData.name,
-            generation: speciesData.generation.name.replace("-", " "),
+            generation: "Generation " + generation,
             flavorText: flavorEntry ? flavorEntry.flavor_text.replace(/\f/g, " ") : "",
             height: `${heightM} m (${feet}'${inches.toString().padStart(2, "0")}")`,
             weight: `${weightKg} kg (${lbs} lbs)`,
