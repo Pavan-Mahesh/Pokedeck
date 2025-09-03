@@ -307,6 +307,7 @@ function PokemonGrid({ mainElem }) {
         return {
             id: speciesData.id,
             name: speciesData.name,
+            generation: speciesData.generation.name,
             flavorText: flavorEntry ? flavorEntry.flavor_text.replace(/\f/g, " ") : "",
             height: `${heightM} m (${feet}'${inches.toString().padStart(2, "0")}")`,
             weight: `${weightKg} kg (${lbs} lbs)`,
