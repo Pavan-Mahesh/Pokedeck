@@ -147,18 +147,14 @@ function PokemonGrid({ mainElem }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currType, genList]);
 
-    async function loadTypeFilter(baseList) {
+    async function loadTypeFilter() {
         try {
             setIsLoading(true);
             setTypeList([]);
             setDisplayList([]);
             setVisibleCount(LIMIT);
 
-            // baseList allows immediate use when caller already has the new generation list
-            const currentGenList = baseList ?? genList ?? [];
-
-            let newTypeList = [];
-
+            let newTypeList = genList;
             if (currType !== "all") {
                 const response = await fetch(TYPE_URL + currType);
                 if (!response.ok) throw new Error("Failed to fetch type data");
@@ -175,19 +171,14 @@ function PokemonGrid({ mainElem }) {
                     })
                     .filter(Boolean);
 
-                // INTERSECTION: if generation is restricted, intersect type results with the generation list
-                if (currentGenList && currentGenList.length > 0) {
-                    const genIdSet = new Set(currentGenList.map(p => p.id));
-                    newTypeList = newTypeList.filter(p => genIdSet.has(p.id));
-                }
-            } else {
-                // currType === "all" -> result should reflect the current generation list
-                newTypeList = currentGenList;
+                const genIdSet = new Set(genList.map(p => p.id));
+                newTypeList = newTypeList.filter(p => genIdSet.has(p.id));
             }
 
-            const filtered = applySearch(newTypeList, searchText || "");
+            const filtered = applySearch(newTypeList, searchText);
             setTypeList(newTypeList);
             setDisplayList(filtered);
+            setErrorMsg("");
 
             await loadPokemonDetails(filtered.slice(0, LIMIT));
 
@@ -201,13 +192,14 @@ function PokemonGrid({ mainElem }) {
 
     // quick search
     function applySearch(list, query) {
-        if (!query || !query.trim()) return list;
+        if (!query?.trim()) return list;
 
-        const cleaned = query.trim().toLowerCase();
-        const searchNumber = Number(cleaned);
+        const cleaned = query.trim().toLowerCase().replaceAll(" ", "");
+        const searchNumber = +cleaned;
+
         return list.filter(pokemon =>
-            pokemon.name.toLowerCase().includes(cleaned.replaceAll(" ", "")) ||
-            (!Number.isNaN(searchNumber) && pokemon.id === searchNumber)
+            pokemon.name.toLowerCase().includes(cleaned) ||
+            pokemon.id === searchNumber
         );
     }
 
@@ -254,6 +246,7 @@ function PokemonGrid({ mainElem }) {
             const newInfo = results.filter(Boolean).reduce((acc, curr) => ({ ...acc, ...curr }), {});
 
             setPokemonInfo(prev => ({ ...prev, ...newInfo }));
+            setErrorMsg("");
         } catch (error) {
             console.error("Batch loading error:", error);
             setErrorMsg("Failed to load some Pokémon details.");
@@ -262,7 +255,7 @@ function PokemonGrid({ mainElem }) {
         }
     }
 
-    // get Pokémon   details
+    // get Pokémon details
     async function fetchPokemonDetails(pokemonIdOrName) {
         const speciesUrl = `https://pokeapi.co/api/v2/pokemon-species/${pokemonIdOrName}`;
         const speciesResponse = await fetch(speciesUrl);
@@ -375,6 +368,7 @@ function PokemonGrid({ mainElem }) {
 
                 const newInfo = missingDetails.filter(Boolean).reduce((acc, curr) => ({ ...acc, ...curr }), {});
                 setPokemonInfo(prev => ({ ...prev, ...newInfo }));
+                setErrorMsg("");
             } catch (error) {
                 console.error("Evolution loading error:", error);
                 setErrorMsg("Failed to load evolution data.");
